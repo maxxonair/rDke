@@ -9,7 +9,7 @@ pub fn add_vec3(vec1: Vec3, vec2: Vec3) -> Vec3 {
   let zz: f64 = vec1.get_z() + vec2.get_z();
   res_vec.set_x(&xx);
   res_vec.set_y(&yy);
-  res_vec.set_z(&yy);
+  res_vec.set_z(&zz);
 
   res_vec
 }

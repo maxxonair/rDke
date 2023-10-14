@@ -9,7 +9,6 @@ pub struct Vec3 {
 }
 
 impl Vec3 {
-
   pub fn new() -> Vec3 {
     Vec3 {
       x: 0.0,
