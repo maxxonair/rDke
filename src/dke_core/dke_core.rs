@@ -109,40 +109,78 @@ impl DKE {
     let mut t_sim = self.sim_start_time_s;
 
     /* Create file writer */
-    write_csv::create_csv("./data_out/out.csv".to_string());
+    let mut results_writer = write_csv::create_csv(
+      "./data_out/out.csv".to_string());
 
     println!("---------------------------------------------------------------");
     println!("              [SIMULATION START]");
     println!("---------------------------------------------------------------");
+    println!("Initial state: {:?}", x_vec);
+    println!("");
 
     /* Create timer for runtime profiling */
     let simulation_timer = Instant::now();
 
     /* Set counter for print outs while the simulation is running */
-    let mut out_counter: f64 = 0.0;
+    let mut print_out_counter: f64 = 0.0;
+    let mut write_out_counter: f64 = 0.0;
+    let mut write_flush_counter: f64 = 0.0;
 
     /* Simulation main loop */
     for sim_step in 0..num_steps {
-      if out_counter > SIMULATION_PRINT_INTERVAL_S 
+      /* Write Simulation status to console  */
+      if print_out_counter > SIMULATION_PRINT_INTERVAL_S 
+        || sim_step == 0
+        || sim_step == num_steps - 1
       {
-        print!("{:?} - {:.2?} ->> {:.2?} \n", sim_step, t_sim, x_vec[2]);
-        out_counter = 0.0;
+        print!("SimTime [s] {:.3?} ->> Altitude [m] {:.2?} \n", t_sim, x_vec[STATE_VEC_INDX_POS_Z]);
+        print_out_counter = 0.0;
       }
       else 
       {
-        out_counter += self.dt_s
+        print_out_counter += self.dt_s
       }
       
-      /* Perform integration step with step size dt_s */
-      x_vec = step( &x_vec, &dxdt, t_sim, self.dt_s);
+      /* Assign simulation time to current state */
+      x_vec[STATE_VEC_INDX_SIM_TIME] = t_sim;
 
-      write_csv::append_to_csv("./data_out/out.csv".to_string(), 
-                               &x_vec,
-                               t_sim).unwrap();
+      /* -------------------------------------------------------------------- */
+      /* !! ---> Perform integration step with step size dt_s <--- !! */
+      x_vec = step( &x_vec, &dxdt, t_sim, self.dt_s);
+      /* -------------------------------------------------------------------- */
+
+      /* Write state udpates to file */
+      if write_out_counter > SIMULATION_WRITE_INTERVAL_S 
+        || sim_step == 0
+        || sim_step == num_steps - 1
+      {
+        write_csv::append_to_csv(&mut results_writer, 
+                                 &x_vec,
+                                 t_sim).unwrap();
+        write_out_counter = 0.0;
+      }
+      else 
+      {
+        write_out_counter += self.dt_s
+      }
+
+      /* Flush csv writer */
+      if write_flush_counter > SIMULATION_WRITE_FLUSH_INTERVAL_S 
+      {
+        flush_csv_writer(&mut results_writer).unwrap();
+        write_flush_counter = 0.0;
+      }
+      else 
+      {
+        write_flush_counter += self.dt_s
+      }
 
       /* Update simulation time for the next step */
       t_sim += self.dt_s;
     }
+    /* One extra flush to make sure everything is written to the file
+       before exiting */
+    flush_csv_writer(&mut results_writer).unwrap();
 
     println!("");
     println!("---------------------------------------------------------------");
@@ -155,10 +193,12 @@ impl DKE {
     println!("Simulation time        [ms] : {:.3?}", simulation_timer
                                                 .elapsed()
                                                 .as_millis());
-    println!("Time per step          [ms] : {:.3?}", (simulation_timer
+    println!("Time per step          [ms] : {:.6?}", (simulation_timer
                                                 .elapsed()
                                                 .as_millis() as f64) 
                                                     / num_steps as f64);
+    println!("");
+    println!("Final state: {:?}", x_vec);
     println!("---------------------------------------------------------------");
 
   }

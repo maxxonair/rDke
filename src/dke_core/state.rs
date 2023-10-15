@@ -14,7 +14,7 @@ use crate::math::quat::Quat;
 
 use ndarray::Array1;
 
-use crate::constants::constants::STATE_VEC_NUM_ELEMENTS;
+use crate::constants::constants::*;
 
 #[derive(Clone)]
 
@@ -60,13 +60,12 @@ pub struct State {
    * @unit       : kg/(meter*meter)
    */
   inertia_matrix_kgmm: Vec9,
-  /* [state vector]
-   * @frame_type : N/A
-   * @unit       : SI
-   * @description: Fixed size array with vector containing all elements 
-   *               of the state in a vector
-   */
-  state_vector: Array1<f64>,
+  /* [state S/C mass] 
+   * @description : S/C mass
+   * @unit        : kg
+   * 
+   * */
+   mass_kg: f64
 }
 
 
@@ -81,7 +80,7 @@ impl State {
       acceleration_xyz_mss: Vec3::new(),
       angular_acc_xyz_radss: Vec3::new(),
       inertia_matrix_kgmm: Vec9::new(),
-      state_vector: Array1::<f64>::zeros(STATE_VEC_NUM_ELEMENTS)
+      mass_kg: 1.0,
     }
   }
 }
@@ -134,33 +133,51 @@ impl State {
 }
 
 impl State {
+  pub fn get_mass(&mut self) -> f64 {
+    self.mass_kg
+  }
+}
+
+impl State {
   pub fn get_vector(&mut self) -> Array1<f64> {
     let mut vec_out = Array1::<f64>::zeros(STATE_VEC_NUM_ELEMENTS);
-    // Compose state vector from elements
-    vec_out[0] = self.position_xyz_m.get_x();
-    vec_out[1] = self.position_xyz_m.get_y();
-    vec_out[2] = self.position_xyz_m.get_z();
+    /* Compose state vector from elements */ 
 
-    vec_out[3] = self.attitude_quat.get_x();
-    vec_out[4] = self.attitude_quat.get_y();
-    vec_out[5] = self.attitude_quat.get_z();
-    vec_out[6] = self.attitude_quat.get_w();
+    /* Simulation time associated to state */
+    vec_out[STATE_VEC_INDX_SIM_TIME] = self.time_s;
 
-    vec_out[7] = self.velocity_xyz_ms.get_x();
-    vec_out[8] = self.velocity_xyz_ms.get_y();
-    vec_out[9] = self.velocity_xyz_ms.get_z();
+    /* [Position] */
+    vec_out[STATE_VEC_INDX_POS_X] = self.position_xyz_m.get_x();
+    vec_out[STATE_VEC_INDX_POS_Y] = self.position_xyz_m.get_y();
+    vec_out[STATE_VEC_INDX_POS_Z] = self.position_xyz_m.get_z();
 
-    vec_out[10] = self.angular_rate_xyz_rads.get_x();
-    vec_out[11] = self.angular_rate_xyz_rads.get_y();
-    vec_out[12] = self.angular_rate_xyz_rads.get_z();
+    /* [Velocity] */
+    vec_out[STATE_VEC_INDX_VEL_X] = self.velocity_xyz_ms.get_x();
+    vec_out[STATE_VEC_INDX_VEL_Y] = self.velocity_xyz_ms.get_y();
+    vec_out[STATE_VEC_INDX_VEL_Z] = self.velocity_xyz_ms.get_z();
 
-    vec_out[13] = self.acceleration_xyz_mss.get_x();
-    vec_out[14] = self.acceleration_xyz_mss.get_y();
-    vec_out[15] = self.acceleration_xyz_mss.get_z();
+    /* [Acceleration] */
+    vec_out[STATE_VEC_INDX_ACC_X] = self.acceleration_xyz_mss.get_x();
+    vec_out[STATE_VEC_INDX_ACC_Y] = self.acceleration_xyz_mss.get_y();
+    vec_out[STATE_VEC_INDX_ACC_Z] = self.acceleration_xyz_mss.get_z();
 
-    vec_out[16] = self.angular_acc_xyz_radss.get_x();
-    vec_out[17] = self.angular_acc_xyz_radss.get_y();
-    vec_out[18] = self.angular_acc_xyz_radss.get_z();
+    /* [Attitude Quaternion] */
+    vec_out[STATE_VEC_INDX_ATTQ_X] = self.attitude_quat.get_x();
+    vec_out[STATE_VEC_INDX_ATTQ_Y] = self.attitude_quat.get_y();
+    vec_out[STATE_VEC_INDX_ATTQ_Z] = self.attitude_quat.get_z();
+    vec_out[STATE_VEC_INDX_ATTQ_W] = self.attitude_quat.get_w();
+
+    /* [Angular Rate] */
+    vec_out[STATE_VEC_INDX_ATTRATE_X] = self.angular_rate_xyz_rads.get_x();
+    vec_out[STATE_VEC_INDX_ATTRATE_Y] = self.angular_rate_xyz_rads.get_y();
+    vec_out[STATE_VEC_INDX_ATTRATE_Z] = self.angular_rate_xyz_rads.get_z();
+
+    /* [Angular Acceleration] */
+    vec_out[STATE_VEC_INDX_ATTACC_X] = self.angular_acc_xyz_radss.get_x();
+    vec_out[STATE_VEC_INDX_ATTACC_Y] = self.angular_acc_xyz_radss.get_y();
+    vec_out[STATE_VEC_INDX_ATTACC_Z] = self.angular_acc_xyz_radss.get_z();
+
+    vec_out[STATE_VEC_INDX_MASS] = self.mass_kg;
 
     vec_out
   }
@@ -176,6 +193,86 @@ impl State {
 
 impl State {
   pub fn set_pos(&mut self, new_pos: &Vec3) {self.position_xyz_m = *new_pos;}
+}
+
+impl State {
+  pub fn set_pos_x(&mut self, new_pos_x: &f64) 
+  {self.position_xyz_m.set_x(new_pos_x);}
+}
+
+impl State {
+  pub fn set_pos_y(&mut self, new_pos_y: &f64) 
+  {self.position_xyz_m.set_y(new_pos_y);}
+}
+
+impl State {
+  pub fn set_pos_z(&mut self, new_pos_z: &f64) 
+  {self.position_xyz_m.set_z(new_pos_z);}
+}
+
+impl State {
+  pub fn set_vel_x(&mut self, new_vel_x: &f64) 
+  {self.velocity_xyz_ms.set_x(new_vel_x);}
+}
+
+impl State {
+  pub fn set_vel_y(&mut self, new_vel_y: &f64) 
+  {self.velocity_xyz_ms.set_y(new_vel_y);}
+}
+
+impl State {
+  pub fn set_vel_z(&mut self, new_vel_z: &f64) 
+  {self.velocity_xyz_ms.set_z(new_vel_z);}
+}
+
+impl State {
+  pub fn set_mass_kg(&mut self, new_mass_kg_in: &f64) 
+  {self.mass_kg = *new_mass_kg_in;}
+}
+
+impl State 
+{
+  pub fn set_vector(&mut self, state_vec_in: &Array1<f64>) 
+  {
+    /* De-compose state vector into elements */
+    
+    /* Simulation time associated to state */
+    self.time_s = state_vec_in[STATE_VEC_INDX_SIM_TIME];
+
+    /* [Position] */
+    self.position_xyz_m.set_x(&state_vec_in[STATE_VEC_INDX_POS_X]) ;
+    self.position_xyz_m.set_y(&state_vec_in[STATE_VEC_INDX_POS_Y]) ;
+    self.position_xyz_m.set_z(&state_vec_in[STATE_VEC_INDX_POS_Z]) ;
+
+    /* [Velocity] */
+    self.velocity_xyz_ms.set_x(&state_vec_in[STATE_VEC_INDX_VEL_X]) ;
+    self.velocity_xyz_ms.set_y(&state_vec_in[STATE_VEC_INDX_VEL_Y]) ;
+    self.velocity_xyz_ms.set_z(&state_vec_in[STATE_VEC_INDX_VEL_Z]) ;
+
+    /* [Acceleration] */
+    self.acceleration_xyz_mss.set_x(&state_vec_in[STATE_VEC_INDX_ACC_X]) ;
+    self.acceleration_xyz_mss.set_y(&state_vec_in[STATE_VEC_INDX_ACC_Y]) ;
+    self.acceleration_xyz_mss.set_z(&state_vec_in[STATE_VEC_INDX_ACC_Z]) ;
+
+    /* [Attitude Quaternion] */
+    self.attitude_quat.set_x(&state_vec_in[STATE_VEC_INDX_ATTQ_X]) ;
+    self.attitude_quat.set_y(&state_vec_in[STATE_VEC_INDX_ATTQ_Y]) ;
+    self.attitude_quat.set_z(&state_vec_in[STATE_VEC_INDX_ATTQ_Z]) ;
+    self.attitude_quat.set_w(&state_vec_in[STATE_VEC_INDX_ATTQ_W]) ;
+
+    /* [Angular Rate] */
+    self.angular_rate_xyz_rads.set_x(&state_vec_in[STATE_VEC_INDX_ATTRATE_X]) ;
+    self.angular_rate_xyz_rads.set_y(&state_vec_in[STATE_VEC_INDX_ATTRATE_Y]) ;
+    self.angular_rate_xyz_rads.set_z(&state_vec_in[STATE_VEC_INDX_ATTRATE_Z]) ;
+
+    /* [Angular Acceleration] */
+    self.angular_acc_xyz_radss.set_x(&state_vec_in[STATE_VEC_INDX_ATTACC_X]) ;
+    self.angular_acc_xyz_radss.set_y(&state_vec_in[STATE_VEC_INDX_ATTACC_Y]) ;
+    self.angular_acc_xyz_radss.set_z(&state_vec_in[STATE_VEC_INDX_ATTACC_Z]) ;
+
+    self.mass_kg = state_vec_in[STATE_VEC_INDX_MASS] ;
+
+  }
 }
 /*
  * ----------------------------------------------------------------------
