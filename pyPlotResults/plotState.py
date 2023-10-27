@@ -48,6 +48,18 @@ def plotPosVelAcc(res):
   ax[1, 2].set_ylabel("acc_y_iframe [m/ss]", fontsize=7)
   ax[2, 2].set_ylabel("acc_z_iframe [m/ss]", fontsize=7)
 
+  ax[0, 0].grid()
+  ax[0, 1].grid()
+  ax[0, 2].grid()
+
+  ax[1, 0].grid()
+  ax[1, 1].grid()
+  ax[1, 2].grid()
+
+  ax[2, 0].grid()
+  ax[2, 1].grid()
+  ax[2, 2].grid()
+
   for i in range(3):
     for j in range(3):
       ax[i, j].tick_params(axis='x', labelsize=7)

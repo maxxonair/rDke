@@ -22,6 +22,10 @@ use crate::dke_core::eom::dxdt;
 /* Import IO */
 use crate::io::write_csv::{*, self};
 
+/* Use time Instant for simulation runtime profiling */
+use std::time::Instant;
+use ini::Ini;
+
 /* External library imports */
 use ndarray::Array1;
 use csv::Writer; 
@@ -95,15 +99,35 @@ impl DKE {
   */
 impl DKE {
   pub fn run_simulation(&mut self) {
-    /* Use time Instant for simulation runtime profiling */
-    use std::time::Instant;
+    /* ---------------------------------------------------------------------- */
+    /*                 [Load from paramters]                                  */
+    /* ---------------------------------------------------------------------- */
+    /* Create parameter file instance > sim.ini < */
+    let sim_conf = Ini::load_from_file(SIM_PARAMETER_FILE_PATH)
+      .unwrap();
 
+    let param_sim_print_interval_s: f64 = (sim_conf
+        .section(Some("print_setting")).unwrap()
+        .get("sim_print_interval_s").unwrap())
+        .parse::<f64>().unwrap();
+
+    let param_sim_archive_interval_s: f64 = (sim_conf
+      .section(Some("write_setting")).unwrap()
+      .get("sim_archive_interval_s").unwrap())
+      .parse::<f64>().unwrap();
+
+    let param_sim_archive_flush_interval_s: f64 = (sim_conf
+      .section(Some("write_setting")).unwrap()
+      .get("sim_archive_flush_interval_s").unwrap())
+      .parse::<f64>().unwrap();
+    /* ---------------------------------------------------------------------- */
     /* Initialize state as vector */
     let mut x_vec = self.state.get_vector();
+    let mut x_vec_n0 = x_vec.clone();
 
     /* Calculate total number of simulation steps */
     let num_steps: i64 = ((self.sim_end_time_s - self.sim_start_time_s) 
-                              / self.dt_s) as i64;
+                              / self.dt_s) as i64 + 1;
     
     /* Initialize variable to track simulation time */
     let mut t_sim = self.sim_start_time_s;
@@ -129,17 +153,17 @@ impl DKE {
     /* Simulation main loop */
     for sim_step in 0..num_steps {
       /* Write Simulation status to console  */
-      if print_out_counter > SIMULATION_PRINT_INTERVAL_S 
+      if print_out_counter >= param_sim_print_interval_s 
         || sim_step == 0
         || sim_step == num_steps - 1
       {
-        print!("SimTime [s] {:.3?} ->> Altitude [m] {:.2?} \n", t_sim, x_vec[STATE_VEC_INDX_POS_Z]);
+        print!("SimTime [s] {:.3?} ( {:.2?}  {:.2?}  {:.2?} ) ->> Altitude [m] {:.2?} \n", 
+          t_sim, x_vec[STATE_VEC_INDX_POS_X], x_vec[STATE_VEC_INDX_POS_Y], 
+          x_vec[STATE_VEC_INDX_POS_Z], self.state.get_altitude(&x_vec));
         print_out_counter = 0.0;
       }
-      else 
-      {
-        print_out_counter += self.dt_s
-      }
+      print_out_counter += self.dt_s;
+
       
       /* Assign simulation time to current state */
       x_vec[STATE_VEC_INDX_SIM_TIME] = t_sim;
@@ -149,8 +173,16 @@ impl DKE {
       x_vec = step( &x_vec, &dxdt, t_sim, self.dt_s);
       /* -------------------------------------------------------------------- */
 
+      /* Fill elements that are not filled in by the solver */
+      x_vec[STATE_VEC_INDX_ACC_X] = (x_vec[STATE_VEC_INDX_VEL_X] 
+                                - x_vec_n0[STATE_VEC_INDX_VEL_X]) / self.dt_s;
+      x_vec[STATE_VEC_INDX_ACC_Y] = (x_vec[STATE_VEC_INDX_VEL_Y] 
+                                - x_vec_n0[STATE_VEC_INDX_VEL_Y]) / self.dt_s;
+      x_vec[STATE_VEC_INDX_ACC_Z] = (x_vec[STATE_VEC_INDX_VEL_Z] 
+                                - x_vec_n0[STATE_VEC_INDX_VEL_Z]) / self.dt_s;
+
       /* Write state udpates to file */
-      if write_out_counter > SIMULATION_WRITE_INTERVAL_S 
+      if write_out_counter >= param_sim_archive_interval_s 
         || sim_step == 0
         || sim_step == num_steps - 1
       {
@@ -159,22 +191,19 @@ impl DKE {
                                  t_sim).unwrap();
         write_out_counter = 0.0;
       }
-      else 
-      {
-        write_out_counter += self.dt_s
-      }
+      write_out_counter += self.dt_s;
+
 
       /* Flush csv writer */
-      if write_flush_counter > SIMULATION_WRITE_FLUSH_INTERVAL_S 
+      if write_flush_counter >= param_sim_archive_flush_interval_s 
       {
         flush_csv_writer(&mut results_writer).unwrap();
         write_flush_counter = 0.0;
       }
-      else 
-      {
-        write_flush_counter += self.dt_s
-      }
+      write_flush_counter += self.dt_s;
 
+      /* Update vector to keep last timesteps state */
+      x_vec_n0 = x_vec.clone();
       /* Update simulation time for the next step */
       t_sim += self.dt_s;
     }
@@ -186,17 +215,21 @@ impl DKE {
     println!("---------------------------------------------------------------");
     println!("              [FINISHED]");
     println!("---------------------------------------------------------------");
-    println!("Simulated time          [s] : {:?}", (self.sim_end_time_s
-                                                    - self.sim_start_time_s));
-    println!("Number of integration steps : {:?}", num_steps);
-    println!("Step size               [s] : {:.4?}", self.dt_s);
-    println!("Simulation time        [ms] : {:.3?}", simulation_timer
-                                                .elapsed()
-                                                .as_millis());
-    println!("Time per step          [ms] : {:.6?}", (simulation_timer
-                                                .elapsed()
-                                                .as_millis() as f64) 
-                                                    / num_steps as f64);
+    println!("Simulated time                      [s] : {:?}", 
+      (self.sim_end_time_s - self.sim_start_time_s) );
+    println!("Number of integration steps             : {:?}", 
+      num_steps);
+    println!("Step size                           [s] : {:.4?}", 
+      self.dt_s);
+    println!("Simulation time                    [ms] : {:.3?}", 
+      simulation_timer.elapsed().as_millis() );
+    println!("Exec time per step                 [ms] : {:.6?}", 
+      (simulation_timer.elapsed().as_millis() as f64) / num_steps as f64);
+    println!("Simulated time / time to simulate   [-] : {:.1?}", 
+      ((self.sim_end_time_s - self.sim_start_time_s) / simulation_timer
+                                                        .elapsed()
+                                                        .as_millis() as f64) * 1000.0);
+    println!("---------------------------------------------------------------");
     println!("");
     println!("Final state: {:?}", x_vec);
     println!("---------------------------------------------------------------");

@@ -7,3 +7,5 @@ pub mod vec9;
 pub mod quat;
 
 pub mod vec_math;
+
+pub mod mathutil;

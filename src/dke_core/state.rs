@@ -139,6 +139,15 @@ impl State {
 }
 
 impl State {
+  pub fn get_altitude(&mut self, state_in: &Array1<f64>) -> f64 {
+    (  (state_in[STATE_VEC_INDX_POS_X]).powf(2.0) 
+     + (state_in[STATE_VEC_INDX_POS_Y]).powf(2.0)
+     + (state_in[STATE_VEC_INDX_POS_Z]).powf(2.0) ).sqrt()
+  }
+}
+
+
+impl State {
   pub fn get_vector(&mut self) -> Array1<f64> {
     let mut vec_out = Array1::<f64>::zeros(STATE_VEC_NUM_ELEMENTS);
     /* Compose state vector from elements */ 

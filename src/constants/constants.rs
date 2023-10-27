@@ -1,4 +1,4 @@
-
+use std::string::String;
 /* 
  * This file contains all hard coded, not to be touched constans
  * 
@@ -49,34 +49,11 @@ pub const STATE_VEC_INDX_ATTACC_Z: usize   = 19;
 pub const STATE_VEC_INDX_MASS: usize       = 20;
 /*----------------------------------------------------------------------------*/
 /*
- *                  [Simulation timer constants]
+ *                  [Paramter file paths]
  * 
  */
-/* 
- * @brief: Time interval between status print outs while the simulator is 
- *         running in simulated time
- * 
- * @unit:  seconds (of simulated time)
- * @frame: N/A
- */
-pub const SIMULATION_PRINT_INTERVAL_S: f64 = 5.0;
 
-/* 
- * @brief: Time interval between state write to csv while the simulator is 
- *         running in simulated time
- * 
- * @unit:  seconds (of simulated time)
- * @frame: N/A
- */
-pub const SIMULATION_WRITE_INTERVAL_S: f64 = 0.5;
-
-/* 
- * @brief: Time interval when the simulation result writer is flushed
- * 
- * @unit:  seconds (of simulated time)
- * @frame: N/A
- */
-pub const SIMULATION_WRITE_FLUSH_INTERVAL_S: f64 = 10.0;
+pub const SIM_PARAMETER_FILE_PATH: &str = "parameters/sim.ini";
 
 /*----------------------------------------------------------------------------*/
 /* 
