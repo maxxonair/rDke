@@ -11,7 +11,8 @@
 use crate::dke_core::state::State;
 
 /* Import constants */
-use crate::constants::constants::*;
+use crate::constants::state::*;
+use crate::constants::filepaths::*;
 
 /* Import ODE solver */
 use crate::solver::rk4::step;
@@ -22,11 +23,9 @@ use crate::dke_core::eom::dxdt;
 /* Import IO */
 use crate::io::write_csv::{*, self};
 
-/* Use time Instant for simulation runtime profiling */
+/* External library imports */
 use std::time::Instant;
 use ini::Ini;
-
-/* External library imports */
 use ndarray::Array1;
 use csv::Writer; 
 
@@ -167,6 +166,8 @@ impl DKE {
       
       /* Assign simulation time to current state */
       x_vec[STATE_VEC_INDX_SIM_TIME] = t_sim;
+      /* Update state epoch */
+      x_vec[STATE_VEC_INDX_J2000_S] += self.dt_s;
 
       /* -------------------------------------------------------------------- */
       /* !! ---> Perform integration step with step size dt_s <--- !! */

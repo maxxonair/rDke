@@ -1,4 +1,3 @@
-use ini::Ini;
 
 pub mod math;
 pub mod solver;
@@ -7,9 +6,15 @@ pub mod constants;
 pub mod io;
 pub mod environment;
 
+/* Import external crates */
+use ini::Ini;
+
+/* Import local crates */
 use crate::dke_core::state::State;
 use crate::dke_core::dke_core::DKE;
-use crate::constants::constants::*;
+
+/* Import Constants */
+use crate::constants::filepaths::*;
 
 fn main() {
     /* Create parameter file instance > sim.ini < */
@@ -54,9 +59,12 @@ fn main() {
         .get("sc_mass_start_kg").unwrap())
         .parse::<f64>().unwrap()));
 
-    println!("{:?}", start_state.get_pos());
+    start_state.set_date_time(&((sim_conf
+        .section(Some("start_state")).unwrap()
+        .get("start_date_time").unwrap())));
+
     /* ---------------------------------------------------------------------- */
-    /* Create simulation core */
+    /* Initialise dynamic kinematic environment */
     let mut dke: DKE = DKE::new();
     /* ---------------------------------------------------------------------- */
     /* Set simulation boundary conditions */
@@ -74,7 +82,7 @@ fn main() {
         .parse::<f64>().unwrap()) );
     dke.set_start_state(start_state);
     /* ---------------------------------------------------------------------- */
-    /* [RUN SIMULATION] */
+    /* !! [RUN SIMULATION] !! */
     /* ---------------------------------------------------------------------- */
     dke.run_simulation();
     /* ---------------------------------------------------------------------- */

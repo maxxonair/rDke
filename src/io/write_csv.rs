@@ -13,7 +13,7 @@ use std::path::Path;
 use std::fs;
 use std::fs::File;
 
-use crate::constants::constants::*;
+use crate::constants::state::*;
 
 /*
  * @brief: Function to Create a csv file writer and add the file header 
@@ -86,7 +86,8 @@ pub fn write_header_to_csv(writer_in: &mut csv::Writer<File>)
                             "att_acc_x_bframe",
                             "att_acc_y_bframe",
                             "att_acc_z_bframe",
-                            "mass_kg",])?;
+                            "mass_kg",
+                            "state_epoch_j2000"])?;
 
  Ok(())
 }

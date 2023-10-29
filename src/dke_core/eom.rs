@@ -1,8 +1,6 @@
 
 use ndarray::Array1;
-use crate::constants::constants::*;
-
-use crate::math::vec3::Vec3;
+use crate::constants::state::*;
 
 /* include environment models */
 use crate::environment::gravity::*;
@@ -45,5 +43,6 @@ pub fn dxdt(
  */
 pub fn get_sum_of_forces(x_n0: &Array1<f64>) -> Array1<f64>
 {
+  // TODO: All all forces acting on the spacecraft here
   gravity::get_force_in_iframe(x_n0)
 }

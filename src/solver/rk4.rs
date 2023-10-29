@@ -7,7 +7,7 @@
  use ndarray::Array1;
 
  /* Import constants */
- use crate::constants::constants::*;
+ use crate::constants::state::*;
 
  /*
  * -----------------------------------------------------------------------------
@@ -39,5 +39,5 @@ pub fn step(x_in: &Array1<f64>,
                                         x_in);
 
   /* Compute state and time at t+dt */
-  x_in + (k1 + k2 + k3 + k4) * dt * ONE_DEVIDED_BY_SIX
+  x_in + (k1 + k2 + k3 + k4) * dt * (1.0 / 6.0)
 }

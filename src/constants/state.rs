@@ -16,7 +16,7 @@ use std::string::String;
  * @unit:  N/A
  * @frame: N/A
  */
-pub const STATE_VEC_NUM_ELEMENTS: usize = 21;
+pub const STATE_VEC_NUM_ELEMENTS: usize = 22;
 
 /* 
  * @brief: State vector indices
@@ -47,20 +47,4 @@ pub const STATE_VEC_INDX_ATTACC_X: usize   = 17;
 pub const STATE_VEC_INDX_ATTACC_Y: usize   = 18;
 pub const STATE_VEC_INDX_ATTACC_Z: usize   = 19;
 pub const STATE_VEC_INDX_MASS: usize       = 20;
-/*----------------------------------------------------------------------------*/
-/*
- *                  [Paramter file paths]
- * 
- */
-
-pub const SIM_PARAMETER_FILE_PATH: &str = "parameters/sim.ini";
-
-/*----------------------------------------------------------------------------*/
-/* 
- * @brief: This constant defines 1/6 and is used to avoid an unnecessary 
- *         division in the rk4 stepper function. 
- * 
- * @unit:  N/A
- * @frame: N/A
- */
-pub const ONE_DEVIDED_BY_SIX: f64       = 1.0 / 6.0;
+pub const STATE_VEC_INDX_J2000_S: usize    = 21;

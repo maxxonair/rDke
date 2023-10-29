@@ -8,13 +8,18 @@
  *               attitude quaternion etc.
  * 
  */
+/* Import local crates */
 use crate::math::vec3::Vec3;
 use crate::math::vec9::Vec9;
 use crate::math::quat::Quat;
 
+/* Import externals crates */
 use ndarray::Array1;
+use chrono::*;
 
-use crate::constants::constants::*;
+/* Import constants */
+use crate::constants::state::*;
+use crate::constants::time::*;
 
 #[derive(Clone)]
 
@@ -65,7 +70,13 @@ pub struct State {
    * @unit        : kg
    * 
    * */
-   mass_kg: f64
+  mass_kg: f64,
+  /* [state epoch ] 
+   * @description : State epoch in seconds since J2000 epoch
+   * @unit        : seconds
+   * 
+   * */
+  state_since_epoch_j2000_s: f64 
 }
 
 
@@ -81,6 +92,7 @@ impl State {
       angular_acc_xyz_radss: Vec3::new(),
       inertia_matrix_kgmm: Vec9::new(),
       mass_kg: 1.0,
+      state_since_epoch_j2000_s: 0.0,
     }
   }
 }
@@ -146,6 +158,11 @@ impl State {
   }
 }
 
+impl State {
+  pub fn get_state_epoch(&mut self) -> f64 {
+    self.state_since_epoch_j2000_s
+  }
+}
 
 impl State {
   pub fn get_vector(&mut self) -> Array1<f64> {
@@ -186,7 +203,11 @@ impl State {
     vec_out[STATE_VEC_INDX_ATTACC_Y] = self.angular_acc_xyz_radss.get_y();
     vec_out[STATE_VEC_INDX_ATTACC_Z] = self.angular_acc_xyz_radss.get_z();
 
+    /* [Vehicle mass] */
     vec_out[STATE_VEC_INDX_MASS] = self.mass_kg;
+
+    /* [State absolute time as] */
+    vec_out[STATE_VEC_INDX_J2000_S] = self.state_since_epoch_j2000_s + self.time_s;
 
     vec_out
   }
@@ -239,6 +260,24 @@ impl State {
   {self.mass_kg = *new_mass_kg_in;}
 }
 
+impl State {
+  pub fn set_date_time(&mut self, date_time_in: &str) 
+  {
+    let state_datetime = Utc
+      .datetime_from_str(&date_time_in, DATETIME_FORMAT)
+      .unwrap();
+    let j2000_epoch = Utc
+      .datetime_from_str(&EPOCH_J2000_DATETIME_STR, DATETIME_FORMAT)
+      .unwrap();
+
+    // /* Calculate difference since J2000 epoch  */
+    let diff = state_datetime.signed_duration_since(j2000_epoch);
+    // /* Set difference as seconds since epoch */
+    self.state_since_epoch_j2000_s = diff.num_seconds() as f64;
+
+  }
+}
+
 impl State 
 {
   pub fn set_vector(&mut self, state_vec_in: &Array1<f64>) 
@@ -280,6 +319,8 @@ impl State
     self.angular_acc_xyz_radss.set_z(&state_vec_in[STATE_VEC_INDX_ATTACC_Z]) ;
 
     self.mass_kg = state_vec_in[STATE_VEC_INDX_MASS] ;
+
+    self.state_since_epoch_j2000_s = state_vec_in[STATE_VEC_INDX_J2000_S] ;
 
   }
 }
