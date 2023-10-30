@@ -43,15 +43,15 @@ fn main() {
 
     start_state.set_vel_x(&((sim_conf
         .section(Some("start_state")).unwrap()
-        .get("vel_pci_x_m").unwrap())
+        .get("vel_pci_x_ms").unwrap())
         .parse::<f64>().unwrap()));
     start_state.set_vel_y(&((sim_conf
         .section(Some("start_state")).unwrap()
-        .get("vel_pci_y_m").unwrap())
+        .get("vel_pci_y_ms").unwrap())
         .parse::<f64>().unwrap()));
     start_state.set_vel_z(&((sim_conf
         .section(Some("start_state")).unwrap()
-        .get("vel_pci_z_m").unwrap())
+        .get("vel_pci_z_ms").unwrap())
         .parse::<f64>().unwrap()));
 
     start_state.set_mass_kg(&((sim_conf

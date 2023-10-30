@@ -3,7 +3,8 @@
 # Dynamic-Kinematic Environment in Rust
 
 This is the dynamic-kinematic simulation environment implemented in Rust. It 
-will be a multi-purpose platform to simulate vehicle motions. 
+will be a multi-purpose platform to simulate vehicle motion and flight dynamics 
+problems. 
 
 :construction: [Under Construction] :construction:
 

@@ -10,3 +10,10 @@
   *  
   */
  pub const SIM_PARAMETER_FILE_PATH: &str = "parameters/sim.ini";
+
+ /*
+  * @brief: Relative path from the executable to the paramater file containing 
+  *         planet specific simulation parameters .
+  *  
+  */
+  pub const PLANET_PARAMETER_FILE_PATH: &str = "parameters/planet.ini";

@@ -5,7 +5,6 @@
  *
  */
 
-use csv::Writer; 
 use std::error::Error;
 use std::fs::OpenOptions;
 use ndarray::Array1;
@@ -13,6 +12,7 @@ use std::path::Path;
 use std::fs;
 use std::fs::File;
 
+/* Include constants */
 use crate::constants::state::*;
 
 /*
@@ -87,7 +87,12 @@ pub fn write_header_to_csv(writer_in: &mut csv::Writer<File>)
                             "att_acc_y_bframe",
                             "att_acc_z_bframe",
                             "mass_kg",
-                            "state_epoch_j2000"])?;
+                            "state_epoch_j2000",
+                            "altitude_pcpf_m",
+                            "latitude_pcpf_deg",
+                            "longitude_pcpf_deg",
+                            "magn_grav_acc_mss"
+                            ])?;
 
  Ok(())
 }
