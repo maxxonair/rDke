@@ -5,6 +5,7 @@ pub mod dke_core;
 pub mod constants;
 pub mod io;
 pub mod environment;
+pub mod util;
 
 /* Import external crates */
 use ini::Ini;
