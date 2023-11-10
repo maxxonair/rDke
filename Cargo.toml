@@ -14,5 +14,5 @@ opt-level = 3
 [dependencies]
 ndarray = "0.15.6"
 csv = "1.1"
-rust-ini = "0.19"
+rust-ini = "0.20"
 chrono = "0.4.31"

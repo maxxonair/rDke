@@ -8,4 +8,8 @@ pub mod quat;
 
 pub mod vec_math;
 
-pub mod mathutil;
+pub mod frame_math;
+
+pub mod time_math;
+
+pub mod rotation_math;

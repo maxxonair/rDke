@@ -15,6 +15,7 @@
 
 /* Include external crates */
 use std::time::Instant;
+use ndarray::Array1;
 
 /* Import (local) structs */
 use crate::dke_core::state::State;
@@ -200,7 +201,7 @@ impl DKE {
     /* ---------------------------------------------------------------------- */
     /*       [Inititalize message log]                                        */
     let mut log: RLog = RLog::new();
-    log.set_enable_debug_messages(&true);
+    log.set_enable_debug_messages(&false);
     /* ---------------------------------------------------------------------- */
     /* Initialize state as vector */
     let mut x_vec = self.state.get_vector();
@@ -298,7 +299,7 @@ impl DKE {
 
 
       /* Check if early exit condition is met */
-      if x_vec[STATE_VEC_INDX_ALTITUDE_PCPF_M] < 0.0
+      if self.is_exit_conditions(&x_vec) == true
       {
         log.rLogWrn("!! [ Exit Simulation ] !!");
         log.rLogWrn("Early exit condition: [altitude below zero]");
@@ -334,6 +335,24 @@ impl DKE {
     log.rLogMsg(&format!("Final state: {:?}", x_vec));
     log.rLogMsg("---------------------------------------------------------------");
     log.close()
+
+  }
+
+  /*
+   * @brief: Function to check if a or several conditions are met to exit the 
+   *         simulation before t_end is reached.
+   * 
+   * @description: This function should be called by run_simulation at any 
+   *               integration step. If this function returns true the simulation
+   *               shall exit and not continue to the next step.
+   * 
+   * @returns: true if any exit condition is met, false otherwise.
+   */
+  pub fn is_exit_conditions(&mut self, x_in: &Array1<f64>)
+  -> bool
+  {
+    if x_in[STATE_VEC_INDX_ALTITUDE_PCPF_M] < 0.0 {true}
+    else {false}
 
   }
 }

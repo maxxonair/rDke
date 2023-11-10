@@ -14,6 +14,9 @@ use ini::Ini;
 use crate::dke_core::state::State;
 use crate::dke_core::dke_core::DKE;
 
+use crate::math::time_math::*;
+use chrono::*;
+
 /* Import Constants */
 use crate::constants::filepaths::*;
 
@@ -86,5 +89,10 @@ fn main() {
     /* !! [RUN SIMULATION] !! */
     /* ---------------------------------------------------------------------- */
     dke.run_simulation();
+    
+    /* Debug Earth time functions */
+    // println!("Equation of equinoxes [s]: {:.4?}", calc_equ_equinoxes_hours(Utc::now()) * 3600.0);
+    // println!("Current GMST [deg]: {:.4?}", calc_earth_gmst_deg(Utc::now()));
+    // println!("Current GAST [deg]: {:.4?}", calc_earth_gast_deg(Utc::now()));
     /* ---------------------------------------------------------------------- */
 }
