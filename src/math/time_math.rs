@@ -50,8 +50,6 @@ pub fn calc_earth_gmst_deg(datetime: DateTime<Utc>)
 -> f64
 {
   let j2000_day: f64 = calc_julian_day(datetime) - JULIAN_DAYS_AT_J2000_EPOCH;
-  let j2000_year: f64 = j2000_day / MEAN_DAYS_IN_EARTH_YEAR;
-  let hours_since_midnight: f64 = datetime.hour() as f64;
 
   let gmst_hours: f64 = (18.697375 + 24.065709824279 * j2000_day ) % 24.0;
   let gmst_deg: f64 = gmst_hours / 24.0 * 360.0;

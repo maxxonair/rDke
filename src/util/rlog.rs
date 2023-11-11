@@ -15,7 +15,7 @@ pub struct RLog
 impl RLog {
   pub fn new() -> RLog {
     println!("-------------------------------------------");
-    println!("-----------  [ start log ]   --------------");
+    println!("+++++++++++  [ start log ]   ++++++++++++++");
     println!("-------------------------------------------");
     println!("  {}", Local::now().format("%Y-%m-%d %H:%M:%S %z").to_string());
     println!("");
@@ -148,12 +148,9 @@ impl RLog {
   }
 
   pub fn close(&mut self) {
-    /* Only show debug messages if enabled */
-    if self.enable_debug_msgs == true
-    {
       /* -> Print complete message string */
       println!("-------------------------------------------");
-      println!("-------  [ close message log ]   ----------");
+      println!("++++++++  [ close message log ]  ++++++++++");
       println!("-------------------------------------------");
       println!("  {}", Local::now().format("%Y-%m-%d %H:%M:%S %z").to_string());
       println!("");
@@ -177,5 +174,4 @@ impl RLog {
       println!("    DBG: {}", self.dbg_type_counter);
       println!("-------------------------------------------");
     }
-  }
  }

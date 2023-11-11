@@ -16,7 +16,7 @@
  * @unit:  N/A
  * @frame: N/A
  */
-pub const STATE_VEC_NUM_ELEMENTS: usize = 26;
+pub const STATE_VEC_NUM_ELEMENTS: usize = 27;
 
 /* 
  * @brief: State vector indices
@@ -52,3 +52,4 @@ pub const STATE_VEC_INDX_ALTITUDE_PCPF_M: usize    = 22;
 pub const STATE_VEC_INDX_POS_PCPF_LAT_DEG: usize   = 23;
 pub const STATE_VEC_INDX_POS_PCPF_LONG_DEG: usize  = 24;
 pub const STATE_VEC_INDX_GRAV_ACC_MSS: usize       = 25;
+pub const STATE_VEC_INDX_GAST_DEG: usize           = 26;

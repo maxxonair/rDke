@@ -46,6 +46,13 @@ pub struct DKE {
    * 
    * */
    sim_end_time_s: f64,
+  /* [end time] 
+   * @description : Current simulation time. This is to track the simulation 
+   *                time while the simulator is running.
+   * @unit        : seconds
+   * 
+   * */
+   sim_current_time_s: f64,
   /* [simulation solver time increment] 
    * @description : Time increment used by the simulations solver.
    * @unit        : seconds
@@ -98,6 +105,7 @@ impl DKE {
     DKE {
       sim_start_time_s: 0.0,
       sim_end_time_s: 0.0,
+      sim_current_time_s: 0.0,
       dt_s: 0.0,
       param_sim_print_interval_s: 0.0,
       param_sim_archive_interval_s: 0.0,
@@ -179,6 +187,10 @@ impl DKE {
 impl DKE {
   pub fn get_dt_s(&self) -> f64 {self.dt_s}
 }
+
+impl DKE {
+  pub fn get_sim_time_s(&self) -> f64 {self.sim_current_time_s}
+}
 /*
  * -----------------------------------------------------------------------------
  *                            [functions]
@@ -193,7 +205,8 @@ impl DKE {
   * 
   */
 impl DKE {
-  pub fn run_simulation(&mut self) {
+  pub fn run_simulation(&mut self) 
+  {
     /* ---------------------------------------------------------------------- */
     /*                 [Load DKE core parameters]                             */
     /* ---------------------------------------------------------------------- */
@@ -217,7 +230,7 @@ impl DKE {
                               / self.dt_s) as i64 + 1;
     
     /* Initialize variable to track simulation time */
-    let mut t_sim = self.sim_start_time_s;
+    self.sim_current_time_s = self.sim_start_time_s;
 
     /* Create file writer */
     let mut results_writer = write_csv::create_csv(
@@ -246,21 +259,17 @@ impl DKE {
         || sim_step == num_steps - 1
       {
         log.rLogDbg(&format!("SimTime [s] {:.3?} ( {:.2?}  {:.2?}  {:.2?} ) ->> Altitude [m] {:.2?}", 
-        t_sim, x_vec[STATE_VEC_INDX_POS_X], x_vec[STATE_VEC_INDX_POS_Y], 
+        self.sim_current_time_s, x_vec[STATE_VEC_INDX_POS_X], x_vec[STATE_VEC_INDX_POS_Y], 
         x_vec[STATE_VEC_INDX_POS_Z], self.state.get_altitude(&x_vec)));
         print_out_counter = 0.0;
       }
       print_out_counter += self.dt_s;
 
-      
-      /* Assign simulation time to current state */
-      x_vec[STATE_VEC_INDX_SIM_TIME] = t_sim;
-      /* Update state epoch */
-      x_vec[STATE_VEC_INDX_J2000_S] += self.dt_s;
-
       /* -------------------------------------------------------------------- */
-      /* !! ---> Perform integration step with step size dt_s <--- !! */
-      x_vec = step( &x_vec, &dxdt, t_sim, self.dt_s, &self);
+      /* !! ---> Perform integration step with step size dt_s <--- !!         */
+      /* +_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_ */
+      x_vec = step( &x_vec, &dxdt, self.sim_current_time_s, self.dt_s, &self);
+      /* +_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_ */
       /* -------------------------------------------------------------------- */
 
       /* Post-process elements that are not filled in by the solver at solving 
@@ -278,7 +287,7 @@ impl DKE {
         /* Write state to csv */
         write_csv::append_to_csv(&mut results_writer, 
                                  &x_vec,
-                                 t_sim).unwrap();
+                                 self.sim_current_time_s).unwrap();
         write_out_counter = 0.0;
       }
       write_out_counter += self.dt_s;
@@ -295,7 +304,7 @@ impl DKE {
       /* Update vector to keep last timesteps state */
       x_vec_n0 = x_vec.clone();
       /* Update simulation time for the next step */
-      t_sim += self.dt_s;
+      self.sim_current_time_s += self.dt_s;
 
 
       /* Check if early exit condition is met */
@@ -334,7 +343,7 @@ impl DKE {
     log.rLogMsg("");
     log.rLogMsg(&format!("Final state: {:?}", x_vec));
     log.rLogMsg("---------------------------------------------------------------");
-    log.close()
+    log.close();
 
   }
 

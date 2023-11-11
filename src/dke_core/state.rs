@@ -76,7 +76,13 @@ pub struct State {
    * @unit        : seconds
    * 
    * */
-  state_since_epoch_j2000_s: f64 
+  state_since_epoch_j2000_s: f64,
+  /* [state gast ] 
+   * @description : Greenwich aparent sidrereal time
+   * @unit        : degree
+   * 
+   * */
+   state_gast_deg: f64 
 }
 
 
@@ -93,6 +99,7 @@ impl State {
       inertia_matrix_kgmm: Vec9::new(),
       mass_kg: 1.0,
       state_since_epoch_j2000_s: 0.0,
+      state_gast_deg: 0.0,
     }
   }
 }
@@ -209,6 +216,9 @@ impl State {
     /* [State absolute time as] */
     vec_out[STATE_VEC_INDX_J2000_S] = self.state_since_epoch_j2000_s + self.time_s;
 
+    /* [State greenwich aparent sidereal time] */
+    vec_out[STATE_VEC_INDX_GAST_DEG] = self.state_since_epoch_j2000_s + self.time_s;
+
     vec_out
   }
 }
@@ -263,18 +273,15 @@ impl State {
 impl State {
   pub fn set_date_time(&mut self, date_time_in: &str) 
   {
-    let state_datetime = Utc
-      .datetime_from_str(&date_time_in, DATETIME_FORMAT)
-      .unwrap();
-    let j2000_epoch = Utc
-      .datetime_from_str(&EPOCH_J2000_DATETIME_STR, DATETIME_FORMAT)
-      .unwrap();
+    let date_time_utc: DateTime<Utc> = DateTime::parse_from_str(date_time_in, 
+                                                              DATETIME_FORMAT)
+        .unwrap()
+        .with_timezone(&Utc);
 
-    // /* Calculate difference since J2000 epoch  */
-    let diff = state_datetime.signed_duration_since(j2000_epoch);
-    // /* Set difference as seconds since epoch */
-    self.state_since_epoch_j2000_s = diff.num_seconds() as f64;
-
+    /* Set difference as seconds since epoch */
+    self.state_since_epoch_j2000_s = (date_time_utc.timestamp() 
+                                      - UNIX_SECONDS_AT_J2000_EPOCH) as f64;
+    println!("Initialise J2000 time [s]: {:?}",  self.state_since_epoch_j2000_s)
   }
 }
 
@@ -321,6 +328,8 @@ impl State
     self.mass_kg = state_vec_in[STATE_VEC_INDX_MASS] ;
 
     self.state_since_epoch_j2000_s = state_vec_in[STATE_VEC_INDX_J2000_S] ;
+
+    self.state_gast_deg = state_vec_in[STATE_VEC_INDX_GAST_DEG] ;
 
   }
 }

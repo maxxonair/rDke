@@ -91,8 +91,13 @@ fn main() {
     dke.run_simulation();
     
     /* Debug Earth time functions */
-    // println!("Equation of equinoxes [s]: {:.4?}", calc_equ_equinoxes_hours(Utc::now()) * 3600.0);
-    // println!("Current GMST [deg]: {:.4?}", calc_earth_gmst_deg(Utc::now()));
-    // println!("Current GAST [deg]: {:.4?}", calc_earth_gast_deg(Utc::now()));
+    // let date_str = "2023-12-19 16:39:57 +00:00";
+    // // let testTime = Utc::now();
+    // let testTime = DateTime::parse_from_str(date_str, "%Y-%m-%d %H:%M:%S %z")
+    //     .unwrap()
+    //     .with_timezone(&Utc);
+    // println!("Equation of equinoxes [s]: {:.4?}", calc_equ_equinoxes_hours(testTime) * 3600.0);
+    // println!("Current GMST [deg]: {:.4?}", calc_earth_gmst_deg(testTime));
+    // println!("Current GAST [deg]: {:.4?}", calc_earth_gast_deg(testTime));
     /* ---------------------------------------------------------------------- */
 }

@@ -33,6 +33,7 @@ B - (General) Body fixed frame
 ## [Time]
 
 ![Sideral Time](https://github.com/maxxonair/rDke/blob/development/assets/images/Siderial_Time.png?raw=true)
+
 Image from https://gssc.esa.int/navipedia/index.php/Sidereal_Time
 
 ### UTC

@@ -87,11 +87,12 @@ pub fn write_header_to_csv(writer_in: &mut csv::Writer<File>)
                             "att_acc_y_bframe",
                             "att_acc_z_bframe",
                             "mass_kg",
-                            "state_epoch_j2000",
+                            "j2000_times_s",
                             "altitude_pcpf_m",
                             "latitude_pcpf_deg",
                             "longitude_pcpf_deg",
-                            "magn_grav_acc_mss"
+                            "magn_grav_acc_mss",
+                            "gast_deg"
                             ])?;
 
  Ok(())

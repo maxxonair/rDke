@@ -1,6 +1,5 @@
 
 /* Include external crates */
-use ini::Ini;
 use ndarray::Array1;
 use chrono::*;
 
@@ -12,6 +11,7 @@ use crate::dke_core::dke_core::DKE;
 use crate::environment::gravity::gravity::get_grav_acc;
 use crate::math::frame_math::{convert_eci_to_ecef,
                               convert_ecef_to_llr};
+use crate::math::time_math::calc_earth_gast_deg;
 
 /* Import constants */
 use crate::constants::state::*;
@@ -49,6 +49,12 @@ pub fn augment_state_solve(dke: &DKE, x1_inout: &Array1<f64>, x0_in: &Array1<f64
 -> Array1<f64>
 {
   let mut x_out = (*x1_inout).clone();
+
+  /* Assign simulation time to current state */
+  x_out[STATE_VEC_INDX_SIM_TIME] = dke.get_sim_time_s();
+  /* Update state epoch */
+  x_out[STATE_VEC_INDX_J2000_S] += dke.get_dt_s();
+
   /* Compute linear acceleration from incremental velocity change */
   x_out[STATE_VEC_INDX_ACC_X] = (x_out[STATE_VEC_INDX_VEL_X] 
     - x0_in[STATE_VEC_INDX_VEL_X]) / dke.get_dt_s();
@@ -101,14 +107,20 @@ pub fn augment_state_write(dke: &DKE, x1_inout: &Array1<f64>, x0_in: &Array1<f64
   pos_eci_m[2]= x_out[STATE_VEC_INDX_POS_Z];
 
   /* Get position in PCPF frame from eci position and current time */
-  let unix_time: i64 = (x1_inout[STATE_VEC_INDX_J2000_S] 
-    + UNIX_SECONDS_AT_J2000_EPOCH as f64) as i64;
-  let native_datetime: NaiveDateTime = NaiveDateTime::from_timestamp(unix_time, 0);
-  let datetime: DateTime<Utc> = DateTime::<Utc>::from_utc(native_datetime, Utc);
+  let unix_time_ms: i64 = ((x1_inout[STATE_VEC_INDX_J2000_S] 
+    + (UNIX_SECONDS_AT_J2000_EPOCH as f64)) * 1000.0) as i64;
 
-  let pos_ecef_m: Array1<f64> = convert_eci_to_ecef(&pos_eci_m, datetime);
+  /* Create DateTime from unix timestamp */
+  let native_datetime: NaiveDateTime = NaiveDateTime::from_timestamp_millis(unix_time_ms).unwrap();
+  let datetime: DateTime<Utc> = DateTime::from_naive_utc_and_offset(native_datetime, Utc);
+  let gast_deg: f64 = calc_earth_gast_deg(datetime);
+  
+  /* Update Greenwich aparent sidreal time in degree */
+  x_out[STATE_VEC_INDX_GAST_DEG] = gast_deg;
+
+  let pos_ecef_m: Array1<f64> = convert_eci_to_ecef(&pos_eci_m, gast_deg);
   let pos_ecef_llr: Array1<f64> = convert_ecef_to_llr(&pos_ecef_m);
-  println!("{:?}", pos_ecef_m);
+
   /* Update Latitude / Longitude in ECEF  */
   x_out[STATE_VEC_INDX_POS_PCPF_LAT_DEG] = (pos_ecef_llr[0]).to_degrees();
   x_out[STATE_VEC_INDX_POS_PCPF_LONG_DEG] = (pos_ecef_llr[1]).to_degrees();
@@ -126,20 +138,6 @@ pub fn augment_state_write(dke: &DKE, x1_inout: &Array1<f64>, x0_in: &Array1<f64
 
   /* Get local magnitude of the gravitational acceleration */
   x_out[STATE_VEC_INDX_GRAV_ACC_MSS] = get_grav_acc(&x1_inout, &dke);
-
-  /* The following is only true if we assume that the Earth is not rotating
-    * around it's axis.
-    * TODO: Replace with proper implementation */
-  if local_radius_m != 0.0
-  {
-    x_out[STATE_VEC_INDX_POS_PCPF_LAT_DEG] = (x_out[STATE_VEC_INDX_POS_Z] / local_radius_m).asin();
-
-    x_out[STATE_VEC_INDX_POS_PCPF_LONG_DEG] = (x_out[STATE_VEC_INDX_POS_Y] / x_out[STATE_VEC_INDX_POS_X]).atan();
-  }
-  else 
-  {
-    println!{"[WRN] Conversion from Cartesian to cylindrical coordinates failed. Radius found to be zero!"};    
-  }
 
   x_out
 }
