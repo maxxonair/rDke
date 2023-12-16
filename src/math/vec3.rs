@@ -26,9 +26,6 @@ impl Vec3 {
 impl Vec3 {
   pub fn set_x(&mut self, new_x: &f64) {
     self.x = *new_x;
-
-    /* Normalize Vec3ernion */
-    self.normalize();
   }
 }
 
@@ -36,9 +33,6 @@ impl Vec3 {
 impl Vec3 {
   pub fn set_y(&mut self, new_y: &f64) {
     self.y = *new_y;
-
-    /* Normalize Vec3ernion */
-    self.normalize();
   }
 }
 
@@ -46,9 +40,6 @@ impl Vec3 {
 impl Vec3 {
   pub fn set_z(&mut self, new_z: &f64) {
     self.z = *new_z;
-
-    /* Normalize Vec3ernion */
-    self.normalize();
   }
 }
 /*

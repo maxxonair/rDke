@@ -16,6 +16,7 @@
 /* Include external crates */
 use std::time::Instant;
 use ndarray::Array1;
+use tqdm::tqdm;
 
 /* Import (local) structs */
 use crate::dke_core::state::State;
@@ -29,6 +30,7 @@ use crate::dke_core::state_augmentation::{augment_state_solve,
                                           augment_state_write};
 use crate::dke_core::dke_core_load_param::load_dke_core_parameters;
 use crate::util::rlog::RLog;
+use crate::util::plot::plot_sc_longitude_latitude;
 
 /* Import constants */
 use crate::constants::state::*;
@@ -239,7 +241,6 @@ impl DKE {
     log.rLogMsg("---------------------------------------------------------------");
     log.rLogMsg("              [SIMULATION START]");
     log.rLogMsg("---------------------------------------------------------------");
-    log.rLogMsg(&format!("Initial state: {:?}", x_vec));
     log.rLogMsg("");
 
     /* Create timer for runtime profiling */
@@ -250,8 +251,15 @@ impl DKE {
     let mut write_out_counter: f64 = 0.0;
     let mut write_flush_counter: f64 = 0.0;
 
+    /* Write initial state to csv */
+    x_vec  = augment_state_write(&self, &mut x_vec, &x_vec_n0 );
+    write_csv::append_to_csv(&mut results_writer, 
+      &x_vec,
+      self.sim_current_time_s).unwrap();
+
+    /* ---------------------------------------------------------------------- */
     /* Simulation main loop */
-    for sim_step in 0..num_steps {
+    for sim_step in tqdm(0..num_steps).style(tqdm::Style::Block) {
 
       /* Write Simulation status to console  */
       if print_out_counter >= self.param_sim_print_interval_s 
@@ -268,19 +276,27 @@ impl DKE {
       /* -------------------------------------------------------------------- */
       /* !! ---> Perform integration step with step size dt_s <--- !!         */
       /* +_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_ */
-      x_vec = step( &x_vec, &dxdt, self.sim_current_time_s, self.dt_s, &self);
+      x_vec = step( &x_vec, 
+                          &dxdt, 
+                          self.sim_current_time_s, 
+                          self.dt_s, 
+                          &self);
       /* +_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_ */
       /* -------------------------------------------------------------------- */
+
+      /* Update current simulation time for the current result step */
+      self.sim_current_time_s += self.dt_s;
 
       /* Post-process elements that are not filled in by the solver at solving 
        * frequency
        * */
       x_vec  = augment_state_solve(&self,&mut x_vec, &x_vec_n0 );
 
+      /* Increment counter to trigger [write results to file] */
+      write_out_counter += self.dt_s;
       /* Write state udpates to file */
       if write_out_counter >= self.param_sim_archive_interval_s 
-        || sim_step == 0
-        || sim_step == num_steps - 1
+        || sim_step == num_steps - 1 
       { 
         /* Augment state at writing frequency */
         x_vec  = augment_state_write(&self, &mut x_vec, &x_vec_n0 );
@@ -290,8 +306,6 @@ impl DKE {
                                  self.sim_current_time_s).unwrap();
         write_out_counter = 0.0;
       }
-      write_out_counter += self.dt_s;
-
 
       /* Flush csv writer */
       if write_flush_counter >= self.param_sim_archive_flush_interval_s 
@@ -303,9 +317,6 @@ impl DKE {
 
       /* Update vector to keep last timesteps state */
       x_vec_n0 = x_vec.clone();
-      /* Update simulation time for the next step */
-      self.sim_current_time_s += self.dt_s;
-
 
       /* Check if early exit condition is met */
       if self.is_exit_conditions(&x_vec) == true
@@ -314,17 +325,20 @@ impl DKE {
         log.rLogWrn("Early exit condition: [altitude below zero]");
         break;
       }
-    } /* sim_step */
-    /* One extra flush to make sure everything is written to the file
+    } /* for(sim_step */
+    /* ---------------------------------------------------------------------- */
+
+    /* One extra flush to make sure everything is written   to the file
        before exiting */
     flush_csv_writer(&mut results_writer).unwrap();
 
+    /* Print summary on completed simulation */
     log.rLogMsg("");
     log.rLogMsg("---------------------------------------------------------------");
     log.rLogMsg("              [FINISHED]");
     log.rLogMsg("---------------------------------------------------------------");
-    log.rLogMsg(&format!("Simulated time                      [s] : {:?}", 
-      (self.sim_end_time_s - self.sim_start_time_s)) );
+    log.rLogMsg(&format!("Simulated time                      [s] : {:.1}", 
+      x_vec[STATE_VEC_INDX_SIM_TIME] ));
     log.rLogMsg(&format!("Runtime                             [s] : {:.3?}", 
     (simulation_timer.elapsed().as_millis() as f64) / 1000.0) );
     log.rLogMsg(&format!("Number of integration steps             : {:?}", 
@@ -340,10 +354,11 @@ impl DKE {
                                                         .elapsed()
                                                         .as_millis() as f64) * 1000.0));
     log.rLogMsg("---------------------------------------------------------------");
-    log.rLogMsg("");
-    log.rLogMsg(&format!("Final state: {:?}", x_vec));
-    log.rLogMsg("---------------------------------------------------------------");
     log.close();
+
+    /* Call Plotting functions on results */
+    // TODO add enabler flags for postprocessing charts
+    plot_sc_longitude_latitude(&"./data_out/out.csv".to_string()).unwrap();
 
   }
 

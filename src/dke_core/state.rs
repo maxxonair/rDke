@@ -82,7 +82,13 @@ pub struct State {
    * @unit        : degree
    * 
    * */
-   state_gast_deg: f64 
+   state_gast_deg: f64, 
+  /* [state velocity magnitude inertial frame ] 
+   * @description : Maginutde of the S/C velocity vector in inertial frame
+   * @unit        : m/s
+   * 
+   * */
+   vel_magn_pci_ms: f64
 }
 
 
@@ -100,6 +106,7 @@ impl State {
       mass_kg: 1.0,
       state_since_epoch_j2000_s: 0.0,
       state_gast_deg: 0.0,
+      vel_magn_pci_ms: 0.0,
     }
   }
 }
@@ -219,6 +226,9 @@ impl State {
     /* [State greenwich aparent sidereal time] */
     vec_out[STATE_VEC_INDX_GAST_DEG] = self.state_since_epoch_j2000_s + self.time_s;
 
+    /* [State velocity mangitude in inertial frame] */
+    vec_out[STATE_VEC_INDX_VEL_MAGN_PCI_MS] = self.vel_magn_pci_ms;
+
     vec_out
   }
 }
@@ -330,6 +340,8 @@ impl State
     self.state_since_epoch_j2000_s = state_vec_in[STATE_VEC_INDX_J2000_S] ;
 
     self.state_gast_deg = state_vec_in[STATE_VEC_INDX_GAST_DEG] ;
+
+    self.vel_magn_pci_ms = state_vec_in[STATE_VEC_INDX_VEL_MAGN_PCI_MS] ;
 
   }
 }

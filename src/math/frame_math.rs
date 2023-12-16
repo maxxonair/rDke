@@ -1,5 +1,6 @@
-use ndarray::{Array1, Array2};
+use ndarray::{Array1, Array2, ArrayView1, s};
 use chrono::{DateTime, Utc};
+use libm::*;
 
 
 use crate::math::rotation_math::dcm_from_zrot;
@@ -13,28 +14,30 @@ use crate::math::rotation_math::dcm_from_zrot;
  *  @returns Position vector in PCPF frame in Latitude, Longitude, Radius format
  * 
  */
-pub fn convert_ecef_to_llr(pos_PCI_m_in: &Array1<f64>)
+pub fn convert_ecef_to_llr(pos_PCI_m_in: ArrayView1<f64>)
 -> Array1<f64>
 {
-  let mut vec_out_LLR: Array1<f64> = Array1::zeros(3);
+  let mut vec_out_llr: Array1<f64> = Array1::zeros(3);
+  let x: f64 = pos_PCI_m_in[0];
+  let y: f64 = pos_PCI_m_in[1];
+  let z: f64 = pos_PCI_m_in[2];
 
   /* Radius [m] */
-  vec_out_LLR[2] = ((pos_PCI_m_in[0]).powf(2.0) 
-                  + (pos_PCI_m_in[1]).powf(2.0) 
-                  + (pos_PCI_m_in[2]).powf(2.0)).sqrt();
+  vec_out_llr[2] = pos_PCI_m_in.dot(&pos_PCI_m_in).sqrt();
 
-  if vec_out_LLR[2] != 0.0
+  // TODO do this check properly for floats
+  if vec_out_llr[2] != 0.0
   {
-    /* Latitude [rad] */
-    vec_out_LLR[0] = (pos_PCI_m_in[2] / vec_out_LLR[2]).asin();
-    /* Longitude [rad] */
-    vec_out_LLR[1] =  (pos_PCI_m_in[1]).atan2(pos_PCI_m_in[0]) ;
+    /* Latitude [rad] = asin(z / R) */
+    vec_out_llr[0] = (z / vec_out_llr[2]).asin();
+    /* Longitude [rad] = atan2(y, x) */
+    vec_out_llr[1] =  atan2(y, x) ;
   }
   else 
   {
     println!{"[WRN] Conversion from Cartesian to cylindrical coordinates failed. Radius found to be zero!"};    
   }
-  vec_out_LLR
+  vec_out_llr
 }
 
 pub fn convert_eci_to_ecef(pos_eci_in: &Array1<f64>, gast_deg: f64)

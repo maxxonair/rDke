@@ -24,6 +24,13 @@ use crate::dke_core::dke_core::DKE;
   * @brief: This function implements a single integration step using the forth
   *         order Runge-Kutta method
   *
+  * @param[in] : x_in - Vector containing the full state vector of the previous 
+  *                     step
+  *
+  * @param[in] : dxdt - Function containing the  equations of motion
+  *
+  * @param[in] : t_in - Time corresponding to the previous state 
+  *
   */
 pub fn step(x_in: &Array1<f64>,
             dxdt: &dyn Fn(&Array1<f64>, f64, &DKE) -> Array1<f64>,
@@ -32,16 +39,24 @@ pub fn step(x_in: &Array1<f64>,
             dke_core: &DKE) 
 -> Array1<f64>
 {
-  /* Compute forth order Runge-Kutta weighted averages */
-  let k1 = dxdt(x_in, t_in,
-                dke_core);
-  let k2 = dxdt(&(x_in + k1.clone() * (dt / 2.0)),t_in + (dt / 2.0),
-                dke_core);
-  let k3 = dxdt(&(x_in + k2.clone() * (dt * 0.5)),t_in + (dt * 0.5),
-                dke_core);
-  let k4 = dxdt(&(x_in + k3.clone() * dt),t_in + dt,
-                dke_core);
+  let t1: f64 = t_in;
+  let t2: f64 = t_in + (dt / 2.0);
+  let t3: f64 = t_in + (dt / 2.0);
+  let t4: f64 = t_in + dt;
 
-  /* Compute state and time at t+dt */
-  x_in + (k1 + 2.0 * k2 + 2.0 * k3 + k4) * dt * (1.0 / 6.0)
+  /* Compute forth order Runge-Kutta weighted averages */
+  let x_1: Array1<f64> = x_in.clone();
+  let k1: Array1<f64> = dxdt(&x_1, t1, dke_core);
+  
+  let x_2: Array1<f64> = x_in.clone() + k1.clone() * (dt / 2.0);
+  let k2: Array1<f64> = dxdt(&x_2, t2, dke_core);
+  
+  let x_3: Array1<f64> = x_in.clone() + k2.clone() * (dt * 0.5);
+  let k3: Array1<f64> = dxdt(&x_3, t3, dke_core);
+  
+  let x_4: Array1<f64> = x_in.clone() + k3.clone() * dt;
+  let k4: Array1<f64> = dxdt(&x_4, t4, dke_core);
+
+  /* Propagate state at t + dt */
+  x_in + (k1 + 2.0 * k2 + 2.0 * k3 + k4) * dt / 6.0
 }

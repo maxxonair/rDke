@@ -1,6 +1,6 @@
 
 /* Include external crates */
-use ndarray::Array1;
+use ndarray::{Array1, ArrayView1, s};
 use chrono::*;
 
 /* Import (local) structs */
@@ -102,9 +102,7 @@ pub fn augment_state_write(dke: &DKE, x1_inout: &Array1<f64>, x0_in: &Array1<f64
 
   /* Get position in PCI frame from state vector */
   let mut pos_eci_m: Array1<f64> = Array1::zeros(3);
-  pos_eci_m[0]= x_out[STATE_VEC_INDX_POS_X];
-  pos_eci_m[1]= x_out[STATE_VEC_INDX_POS_Y];
-  pos_eci_m[2]= x_out[STATE_VEC_INDX_POS_Z];
+  pos_eci_m.assign(&x_out.slice(s![STATE_VEC_INDX_POS_X..(STATE_VEC_INDX_POS_Z+1)]));
 
   /* Get position in PCPF frame from eci position and current time */
   let unix_time_ms: i64 = ((x1_inout[STATE_VEC_INDX_J2000_S] 
@@ -119,25 +117,22 @@ pub fn augment_state_write(dke: &DKE, x1_inout: &Array1<f64>, x0_in: &Array1<f64
   x_out[STATE_VEC_INDX_GAST_DEG] = gast_deg;
 
   let pos_ecef_m: Array1<f64> = convert_eci_to_ecef(&pos_eci_m, gast_deg);
-  let pos_ecef_llr: Array1<f64> = convert_ecef_to_llr(&pos_ecef_m);
+  let pos_ecef_llr: Array1<f64> = convert_ecef_to_llr(pos_ecef_m.view());
 
   /* Update Latitude / Longitude in ECEF  */
   x_out[STATE_VEC_INDX_POS_PCPF_LAT_DEG] = (pos_ecef_llr[0]).to_degrees();
   x_out[STATE_VEC_INDX_POS_PCPF_LONG_DEG] = (pos_ecef_llr[1]).to_degrees();
 
-  // TODO: This is not to proper way to compute the local altitude by any 
-  //       standards and needs to be replaced by calculating the geodetic 
-  //       altitude.
-  let local_radius_m: f64 = ( pos_eci_m[0].powf(2.0)
-                            + pos_eci_m[1].powf(2.0) 
-                            + pos_eci_m[2].powf(2.0)).sqrt() ;
-
-  x_out[STATE_VEC_INDX_ALTITUDE_PCPF_M] = local_radius_m
+  x_out[STATE_VEC_INDX_ALTITUDE_PCPF_M] = pos_ecef_llr[2]
     - (dke.get_planet().get_semi_major_axis()
        + dke.get_planet().get_semi_minor_axis()) * 0.5;
 
   /* Get local magnitude of the gravitational acceleration */
   x_out[STATE_VEC_INDX_GRAV_ACC_MSS] = get_grav_acc(&x1_inout, &dke);
 
+  let mut vel_eci_ms: Array1<f64> = Array1::zeros(3);
+  vel_eci_ms.assign(&x_out.slice(s![STATE_VEC_INDX_VEL_X..(STATE_VEC_INDX_VEL_Z+1)]));
+  x_out[STATE_VEC_INDX_VEL_MAGN_PCI_MS] = vel_eci_ms.dot(&vel_eci_ms).sqrt();
+  
   x_out
 }

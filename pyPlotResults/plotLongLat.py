@@ -10,32 +10,27 @@ def plotAltitude():
   Plot position and velocity in 3 axes
   """
   res = pd.read_csv("./data_out/out.csv")
-  f, ax = plt.subplots(3, 1, sharex=False)
+  f, ax = plt.subplots(1, 1, sharex=False)
 
-  vel_magn_ms = np.sqrt(  np.multiply(res["vel_x_iframe"].to_numpy(),res["vel_x_iframe"].to_numpy())
-                           + np.multiply(res["vel_y_iframe"].to_numpy(), res["vel_y_iframe"].to_numpy()) 
-                           + np.multiply(res["vel_z_iframe"].to_numpy(), res["vel_z_iframe"].to_numpy()))
-  #-------------
-  ax[0].scatter((res["longitude_pcpf_deg"]),vel_magn_ms, marker='.', s=1)
+  # vel_magn_ms = np.sqrt(  np.multiply(res["vel_x_iframe"].to_numpy(),res["vel_x_iframe"].to_numpy())
+  #                          + np.multiply(res["vel_y_iframe"].to_numpy(), res["vel_y_iframe"].to_numpy()) 
+  #                          + np.multiply(res["vel_z_iframe"].to_numpy(), res["vel_z_iframe"].to_numpy()))
   
-  ax[0].set_ylabel("Velocity [m/s] ", fontsize=7)
-
-  ax[0].set_xlabel("Longitude [deg]", fontsize=7)
-  ax[0].grid()
+  # Load background map from file 
+  img = plt.imread("assets/images/earth_map.jpg")
   #-------------
-  ax[1].scatter((res["longitude_pcpf_deg"].to_numpy()), (res["latitude_pcpf_deg"].to_numpy()), marker='.', s=1)
-  
-  ax[1].set_xlabel("Longitude [deg]", fontsize=7)
+  ax.imshow(img, extent=[-180, 180, -90, 90])
+  ax.scatter(res["longitude_pcpf_deg"],
+             res["latitude_pcpf_deg"],
+             marker='.',
+             s=1,
+             c='b')
+  ax.set_xlabel("Longitude [deg]", fontsize=7)
 
-  ax[1].set_ylabel("Latitude [deg]", fontsize=7)
-  ax[1].grid()
+  ax.set_ylabel("Latitude [deg]", fontsize=7)
+  ax.grid()
   #-------------
-  ax[2].scatter((res["longitude_pcpf_deg"].to_numpy()),res["altitude_pcpf_m"].to_numpy()/1000, marker='.', s=1)
-  
-  ax[2].set_ylabel("Altitude [km]", fontsize=7)
 
-  ax[2].set_xlabel("Longitude [deg]", fontsize=7)
-  ax[2].grid()
 
   plt.show()
 

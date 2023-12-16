@@ -14,33 +14,36 @@ pub fn get_force_in_iframe(state_in: &Array1<f64>, dke: &DKE) -> Array1<f64>
    * */
   let grav_acceleration_mss: f64 = get_grav_acc(&state_in, &dke);
 
+  let mut position_vec_xyz_m: Array1<f64> = Array1::zeros(3);
+  position_vec_xyz_m.assign(&state_in.slice(s![STATE_VEC_INDX_POS_X..(STATE_VEC_INDX_POS_Z+1)]));
+
+  /* Calculate length of position vector in PCI frame */
+  let position_norm_m: f64 = position_vec_xyz_m.dot(&position_vec_xyz_m).sqrt();
+
+  let sc_mass_kg: f64 = state_in[STATE_VEC_INDX_MASS];
+
   /* Initialise output vector to store the gravitational force  
    * @unit: Newton
    * @frame: PCI
    */
-  let mut grav_Force_PCI_N_out: Array1<f64> = Array1::zeros(3);
-  /* Create vector to compute gravity direction in PCI */
-  let mut grav_acc_dir_norm: Array1<f64> = Array1::zeros(3);
-  /* Temporarily assign current state position vector to grav_acc_dir_norm */
-  grav_acc_dir_norm.assign(&state_in.slice(s![STATE_VEC_INDX_POS_X..(STATE_VEC_INDX_POS_Z+1)]));
-  /* Calculate length of position vector in PCI frame */
-  let position_norm: f64 = ((grav_acc_dir_norm[0]).powf(2.0) 
-                          + (grav_acc_dir_norm[1]).powf(2.0) 
-                          + (grav_acc_dir_norm[2]).powf(2.0)).sqrt();
-  /* Check position is at least 10 cm away from the center of the internal 
+  let mut grav_force_pci_n_out: Array1<f64> = Array1::zeros(3);
+
+  /* Check position is at least 10 cm away from the center of the inertial 
    * planet centered frame in which case the gravitational force cannot be 
    * computed
    * */
-  if position_norm > 0.1
+  if position_norm_m > 0.1
   {
-    grav_acc_dir_norm = -1.0 * grav_acc_dir_norm * (1.0 / position_norm);
-    grav_Force_PCI_N_out = grav_acceleration_mss * grav_acc_dir_norm * state_in[STATE_VEC_INDX_MASS]; 
+    /* Comppute normalized direction vector of the gravitational acceleration */
+    let grav_acc_dir_norm: Array1<f64> = -1.0 * position_vec_xyz_m / position_norm_m;
+    /* Compute vector of the gravitational force on the S/C  */
+    grav_force_pci_n_out = grav_acceleration_mss * grav_acc_dir_norm * sc_mass_kg; 
   }
   else 
   {
     println!("[ERR] Computing gravitation force failed. PCI Position is [0,0,0]");
   }
-  grav_Force_PCI_N_out
+  grav_force_pci_n_out
 }
 
 /*
@@ -50,19 +53,27 @@ pub fn get_force_in_iframe(state_in: &Array1<f64>, dke: &DKE) -> Array1<f64>
 pub fn get_grav_acc(state_in: &Array1<f64>, dke: &DKE)
 -> f64
 {
+  /* Get S/C position in PCI */
+  let mut position_vec_xyz_m: Array1<f64> = Array1::zeros(3);
+  position_vec_xyz_m.assign(&state_in.slice(s![STATE_VEC_INDX_POS_X..(STATE_VEC_INDX_POS_Z+1)]));
+
+  /* Estimate local radius of the planet at the longitude and latitude of the 
+     current S/C's position */
   let mean_radius_m: f64 = ( dke.get_planet().get_semi_major_axis() 
       + dke.get_planet().get_semi_minor_axis()) * 0.5;
-  let local_altitude_m: f64 =   (
-        state_in[STATE_VEC_INDX_POS_X].powf(2.0)
-      + state_in[STATE_VEC_INDX_POS_Y].powf(2.0)
-      + state_in[STATE_VEC_INDX_POS_Z].powf(2.0)).sqrt() 
-      - mean_radius_m;
+  /*
+   * Note: We can compare the radii in PCI vs PCPF because we only look at the 
+   *       magnitude of both vectors and both coordinate systems share the same 
+   *       origin.  
+   */
+  let local_altitude_m: f64 = position_vec_xyz_m.dot(&position_vec_xyz_m).sqrt()
+                              - mean_radius_m;
 
   /* Initialize Array1 to store gravity force 
   * @unit: m/ss
   * */
   let grav_acceleration_mss: f64 = 9.80665 * (mean_radius_m 
-    * (1.0/ (mean_radius_m + local_altitude_m))).powf(2.0); 
+    * (1.0 / (mean_radius_m + local_altitude_m))).powf(2.0); 
 
   grav_acceleration_mss
 }
