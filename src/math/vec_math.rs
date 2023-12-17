@@ -17,3 +17,35 @@ pub fn normalize_array1(mut vec: Array1<f64>) -> Array1<f64> {
   vec.mapv_inplace(|e: f64| e/norm);
   vec
 }
+
+/*
+ * @brief: Scale Vec<f64> with scale factor 
+ * 
+ */
+pub fn scale_vec_f64(mut vec: Vec<f64>, scale_factor: f64) -> Vec<f64> {
+  for element in vec.iter_mut() {
+    *element *= scale_factor;
+  }
+  vec
+}
+
+
+/*
+ * @brief: Find maximum value in Vec<f64> 
+ *         Note: NaN entries are ignored!
+ * 
+ */
+pub fn find_max_vec_f64(vec: &Vec<f64>) -> f64 {
+  let max_value: f64 = vec.iter().cloned().fold(-1./0. /* -inf */, f64::max);
+  max_value
+}
+
+/*
+ * @brief: Find minimum value in Vec<f64>
+ *         Note: NaN entries are ignored!
+ * 
+ */
+pub fn find_min_vec_f64(vec: &Vec<f64>) -> f64 {
+  let min_value: f64 = vec.iter().cloned().fold(99999./0. /* -inf */, f64::min);
+  min_value
+}

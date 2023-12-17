@@ -30,7 +30,8 @@ use crate::dke_core::state_augmentation::{augment_state_solve,
                                           augment_state_write};
 use crate::dke_core::dke_core_load_param::load_dke_core_parameters;
 use crate::util::rlog::RLog;
-use crate::util::plot::plot_sc_longitude_latitude;
+use crate::util::plot::{plot_sc_groundtrack, 
+                        plot_sc_altitude_vs_longitude};
 
 /* Import constants */
 use crate::constants::state::*;
@@ -354,12 +355,15 @@ impl DKE {
                                                         .elapsed()
                                                         .as_millis() as f64) * 1000.0));
     log.rLogMsg("---------------------------------------------------------------");
-    log.close();
-
     /* Call Plotting functions on results */
     // TODO add enabler flags for postprocessing charts
-    plot_sc_longitude_latitude(&"./data_out/out.csv".to_string()).unwrap();
+    log.rLogMsg("[Save Plot] -> S/C ground track");
+    plot_sc_groundtrack(&"./data_out/out.csv".to_string()).unwrap();
 
+    log.rLogMsg("[Save Plot] -> S/C altitude vs longitiude");
+    plot_sc_altitude_vs_longitude(&"./data_out/out.csv".to_string()).unwrap();
+    
+    log.close();
   }
 
   /*
