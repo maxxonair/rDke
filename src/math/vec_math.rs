@@ -1,15 +1,19 @@
+use ndarray::{Array1, ArrayView1, s};
 
-use super::vec3::Vec3;
+/*
+ * @brief: Calculate l2 norm of a Array1 vector
+ *
+ */
+pub fn l2_norm_array1(vec: ArrayView1<f64>) -> f64 {
+  vec.dot(&vec).sqrt()
+}
 
-pub fn add_vec3(vec1: Vec3, vec2: Vec3) -> Vec3 {
-  let mut res_vec = Vec3::new();
-
-  let xx: f64 = vec1.get_x() + vec2.get_x();
-  let yy: f64 = vec1.get_y() + vec2.get_y();
-  let zz: f64 = vec1.get_z() + vec2.get_z();
-  res_vec.set_x(&xx);
-  res_vec.set_y(&yy);
-  res_vec.set_z(&zz);
-
-  res_vec
+/*
+ * @brief: Normalize Array1 vector
+ * 
+ */
+pub fn normalize_array1(mut vec: Array1<f64>) -> Array1<f64> {
+  let norm: f64 = l2_norm_array1(vec.view());
+  vec.mapv_inplace(|e: f64| e/norm);
+  vec
 }

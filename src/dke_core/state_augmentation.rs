@@ -12,6 +12,7 @@ use crate::environment::gravity::gravity::get_grav_acc;
 use crate::math::frame_math::{convert_eci_to_ecef,
                               convert_ecef_to_llr};
 use crate::math::time_math::calc_earth_gast_deg;
+use crate::math::vec_math::l2_norm_array1;
 
 /* Import constants */
 use crate::constants::state::*;
@@ -130,9 +131,10 @@ pub fn augment_state_write(dke: &DKE, x1_inout: &Array1<f64>, x0_in: &Array1<f64
   /* Get local magnitude of the gravitational acceleration */
   x_out[STATE_VEC_INDX_GRAV_ACC_MSS] = get_grav_acc(&x1_inout, &dke);
 
+  /* Compute the magnitude of the velocity vector in PCI frame */
   let mut vel_eci_ms: Array1<f64> = Array1::zeros(3);
   vel_eci_ms.assign(&x_out.slice(s![STATE_VEC_INDX_VEL_X..(STATE_VEC_INDX_VEL_Z+1)]));
-  x_out[STATE_VEC_INDX_VEL_MAGN_PCI_MS] = vel_eci_ms.dot(&vel_eci_ms).sqrt();
+  x_out[STATE_VEC_INDX_VEL_MAGN_PCI_MS] = l2_norm_array1(vel_eci_ms.view()); 
   
   x_out
 }

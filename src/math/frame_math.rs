@@ -4,6 +4,7 @@ use libm::*;
 
 
 use crate::math::rotation_math::dcm_from_zrot;
+use crate::math::vec_math::l2_norm_array1;
 
 /*
  * @brief: Function to convert position coordinates from ECEF 
@@ -23,7 +24,7 @@ pub fn convert_ecef_to_llr(pos_PCI_m_in: ArrayView1<f64>)
   let z: f64 = pos_PCI_m_in[2];
 
   /* Radius [m] */
-  vec_out_llr[2] = pos_PCI_m_in.dot(&pos_PCI_m_in).sqrt();
+  vec_out_llr[2] = l2_norm_array1(pos_PCI_m_in.view());
 
   // TODO do this check properly for floats
   if vec_out_llr[2] != 0.0

@@ -3,6 +3,7 @@ use ndarray::{Array1, s};
 
 /* Include local crates */
 use crate::dke_core::dke_core::DKE;
+use crate::math::vec_math::{l2_norm_array1, normalize_array1};
 
 /* Include constants */
 use crate::constants::state::*;
@@ -16,26 +17,24 @@ pub fn get_force_in_iframe(state_in: &Array1<f64>, dke: &DKE) -> Array1<f64>
 
   let mut position_vec_xyz_m: Array1<f64> = Array1::zeros(3);
   position_vec_xyz_m.assign(&state_in.slice(s![STATE_VEC_INDX_POS_X..(STATE_VEC_INDX_POS_Z+1)]));
-
-  /* Calculate length of position vector in PCI frame */
-  let position_norm_m: f64 = position_vec_xyz_m.dot(&position_vec_xyz_m).sqrt();
-
+  let local_radius_m: f64 = l2_norm_array1(position_vec_xyz_m.view());
+  
   let sc_mass_kg: f64 = state_in[STATE_VEC_INDX_MASS];
-
+  
   /* Initialise output vector to store the gravitational force  
-   * @unit: Newton
-   * @frame: PCI
-   */
+  * @unit: Newton
+  * @frame: PCI
+  */
   let mut grav_force_pci_n_out: Array1<f64> = Array1::zeros(3);
-
+  
   /* Check position is at least 10 cm away from the center of the inertial 
-   * planet centered frame in which case the gravitational force cannot be 
-   * computed
-   * */
-  if position_norm_m > 0.1
+  * planet centered frame in which case the gravitational force cannot be 
+  * computed
+  * */
+  if local_radius_m > 0.1
   {
     /* Comppute normalized direction vector of the gravitational acceleration */
-    let grav_acc_dir_norm: Array1<f64> = -1.0 * position_vec_xyz_m / position_norm_m;
+    let grav_acc_dir_norm: Array1<f64> = -1.0 * normalize_array1(position_vec_xyz_m);
     /* Compute vector of the gravitational force on the S/C  */
     grav_force_pci_n_out = grav_acceleration_mss * grav_acc_dir_norm * sc_mass_kg; 
   }
@@ -66,7 +65,7 @@ pub fn get_grav_acc(state_in: &Array1<f64>, dke: &DKE)
    *       magnitude of both vectors and both coordinate systems share the same 
    *       origin.  
    */
-  let local_altitude_m: f64 = position_vec_xyz_m.dot(&position_vec_xyz_m).sqrt()
+  let local_altitude_m: f64 = l2_norm_array1(position_vec_xyz_m.view())
                               - mean_radius_m;
 
   /* Initialize Array1 to store gravity force 
