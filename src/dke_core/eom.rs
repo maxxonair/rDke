@@ -2,8 +2,9 @@
 use ndarray::Array1;
 
 /* Include local carates */
-use crate::dke_core::dke_core::DKE;
+use crate::environment::environment::Environment;
 use crate::environment::gravity::*;
+use crate::environment::aerodynamic::*;
 
 /* Include constants */
 use crate::constants::state::*;
@@ -12,14 +13,14 @@ use crate::constants::general::*;
 pub fn dxdt(
     x_in: &Array1<f64>,
     t_in: f64,
-    dke: &DKE) 
+    environment: &mut Environment) 
 -> Array1<f64>
 {
   let mut dxdt_out = Array1
                                                     ::<f64>
                                                     ::zeros(STATE_VEC_NUM_ELEMENTS);
   /* Get sum of all forces acting on the S/C */
-  let sum_of_forces_iframe: Array1<f64> = get_sum_of_forces(x_in, dke) ;
+  let sum_of_forces_iframe: Array1<f64> = get_sum_of_forces(x_in, environment) ;
 
   let fx: f64 = sum_of_forces_iframe[VEC_X];
   let fy: f64 = sum_of_forces_iframe[VEC_Y];
@@ -57,9 +58,24 @@ pub fn dxdt(
 
 /*
  * @brief: Function to gather the sum of all forces on the vehicle 
+ * 
+ * NOTE: All all forces acting on the spacecraft here
+ * 
+ * @unit: TODO
+ * @frame: TODO
  */
-pub fn get_sum_of_forces(x_n1: &Array1<f64>, dke: &DKE) -> Array1<f64>
+pub fn get_sum_of_forces(x_n1: &Array1<f64>, environment: &mut Environment) -> Array1<f64>
 {
-  // TODO: All all forces acting on the spacecraft here
-  gravity::get_force_in_iframe(x_n1, &dke)
+  let mut sum_of_forces_vec_pci_n: Array1<f64> = Array1::zeros(3);
+
+  /* [GRAVITATIONAL FORCES] */
+  sum_of_forces_vec_pci_n += &gravity::get_force_in_iframe(x_n1, &environment);
+  
+  /* [AERODYNAMIC FORCES] */
+  if *environment.get_planet().is_atmoshpere_modelled() == true
+  {
+    sum_of_forces_vec_pci_n += &aerodynamic::get_aerodynamic_force_vec_pci(x_n1.view(), environment);
+  }
+
+  sum_of_forces_vec_pci_n
 }

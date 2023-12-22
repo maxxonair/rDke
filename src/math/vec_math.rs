@@ -49,3 +49,11 @@ pub fn find_min_vec_f64(vec: &Vec<f64>) -> f64 {
   let min_value: f64 = vec.iter().cloned().fold(99999./0. /* -inf */, f64::min);
   min_value
 }
+
+/*
+ * @brief: Pointwise square a Array1 vector 
+ * 
+ */
+pub fn pointwise_square(arr: Array1<f64>) -> Array1<f64> {
+  arr.mapv(|x| x * x)
+}

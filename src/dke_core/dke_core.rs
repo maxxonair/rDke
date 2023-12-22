@@ -20,8 +20,8 @@ use tqdm::tqdm;
 
 /* Import (local) structs */
 use crate::dke_core::state::State;
-use crate::environment::planet::planet::Planet;
 
+use crate::environment::environment::Environment;
 /* Include local crates */
 use crate::solver::rk4::step;
 use crate::dke_core::eom::dxdt;
@@ -91,12 +91,12 @@ pub struct DKE {
    * 
    * */
    state: State,
-  /* [Planet struct] 
-   * @description : Data struct containing all planet relevant parameters
+  /* [Environment struct] 
+   * @description : Full environment struct
    * @unit        : N/A
    * 
    * */
-   planet: Planet
+   environment: Environment,
 }
 /*
  * -----------------------------------------------------------------------------
@@ -114,7 +114,7 @@ impl DKE {
       param_sim_archive_interval_s: 0.0,
       param_sim_archive_flush_interval_s: 0.0,
       state: State::new(),
-      planet: Planet::new()
+      environment: Environment::new()
     }
   }
 }
@@ -124,76 +124,42 @@ impl DKE {
 */
 /* Set simulation start time [s]  */
 impl DKE {
- pub fn set_t_start(&mut self, t_start_s_in: &f64) {
+  pub fn set_t_start(&mut self, t_start_s_in: &f64) {
    self.sim_start_time_s = *t_start_s_in;
- }
-}
-/* Set simulation end time [s]  */
-impl DKE {
+  }
   pub fn set_t_end(&mut self, t_end_s_in: &f64) {
     self.sim_end_time_s = *t_end_s_in;
   }
- }
- /* Set simulation step time [s]  */
-impl DKE {
   pub fn set_step_size(&mut self, dt_s_in: &f64) {
     self.dt_s = *dt_s_in;
   }
- }
-/* Set simulation start state [-]  */
-impl DKE {
   pub fn set_start_state(&mut self, start_state: State) {
     self.state = start_state.clone();
   }
- }
-
- impl DKE {
-  pub fn set_planet(&mut self, planet_in: Planet) {
-    self.planet = planet_in.clone();
-  }
- }
-
- impl DKE {
   pub fn set_param_sim_print_interval_s(&mut self, param_sim_print_interval_s_in: &f64) {
     self.param_sim_print_interval_s = *param_sim_print_interval_s_in;
   }
- }
-
- impl DKE {
   pub fn set_param_sim_archive_interval_s(&mut self, param_sim_archive_interval_s_in: &f64) {
     self.param_sim_archive_interval_s = *param_sim_archive_interval_s_in;
   }
- }
-
- impl DKE {
   pub fn set_param_sim_archive_flush_interval_s(&mut self, param_sim_archive_flush_interval_s_in: &f64) {
     self.param_sim_archive_flush_interval_s = *param_sim_archive_flush_interval_s_in;
   }
- }
+}
+
 /* -----------------------------------------------------------------------------
-*                    [getters]
-* ------------------------------------------------------------------------------
-* Allow immutable access only.
-*/
-impl DKE {
-  pub fn get_planet(&self) -> &Planet {&self.planet}
-}
-
-/* The following function allows mutable access to the planet struct.
- * This power should be used with care and ONLY to set planet data when 
- * initializing from parameters */
-impl DKE {
-  pub fn get_mut_planet(&mut self) -> &mut Planet {&mut self.planet}
-}
-
+ *                    [getters]
+ * ------------------------------------------------------------------------------
+ */
 
 impl DKE {
   pub fn get_dt_s(&self) -> f64 {self.dt_s}
+  pub fn get_sim_time_s(&self) -> f64 {self.sim_current_time_s}
+
+  pub fn get_mut_environment(&mut self) -> &mut Environment {&mut self.environment}
 }
 
-impl DKE {
-  pub fn get_sim_time_s(&self) -> f64 {self.sim_current_time_s}
-}
+
 /*
  * -----------------------------------------------------------------------------
  *                            [functions]
@@ -220,13 +186,13 @@ impl DKE {
     log.set_enable_debug_messages(&false);
     /* ---------------------------------------------------------------------- */
     /* Initialize state as vector */
-    let mut x_vec = self.state.get_vector();
+    let mut x_vec: Array1<f64> = self.state.get_vector();
     /* Make sure the state vectors time value matches the start time selected 
      * for this simulation. */
     x_vec[STATE_VEC_INDX_SIM_TIME] = self.sim_start_time_s;
     /* Create a clone of the start state to keep track of the previous state
      * Note: This is used for post-solving state augmentation */
-    let mut x_vec_n0 = x_vec.clone();
+    let mut x_vec_n0: Array1<f64> = x_vec.clone();
 
     /* Calculate total number of simulation steps */
     let num_steps: i64 = ((self.sim_end_time_s - self.sim_start_time_s) 
@@ -253,10 +219,8 @@ impl DKE {
     let mut write_flush_counter: f64 = 0.0;
 
     /* Write initial state to csv */
-    x_vec  = augment_state_write(&self, &mut x_vec, &x_vec_n0 );
-    write_csv::append_to_csv(&mut results_writer, 
-      &x_vec,
-      self.sim_current_time_s).unwrap();
+    x_vec  = augment_state_write(&self.get_mut_environment(), &mut x_vec, &x_vec_n0 );
+    write_csv::append_to_csv(&mut results_writer, &x_vec,self.sim_current_time_s).unwrap();
 
     /* ---------------------------------------------------------------------- */
     /* Simulation main loop */
@@ -281,17 +245,22 @@ impl DKE {
                           &dxdt, 
                           self.sim_current_time_s, 
                           self.dt_s, 
-                          &self);
+                          &mut self.environment);
       /* +_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_ */
       /* -------------------------------------------------------------------- */
 
       /* Update current simulation time for the current result step */
       self.sim_current_time_s += self.dt_s;
+      
+      /* Update environment with simtime information */
+      let dts: f64 = self.dt_s;
+      let simtime: f64 = self.sim_current_time_s;
+      self.get_mut_environment().set_simtimes(&dts, &simtime);
 
       /* Post-process elements that are not filled in by the solver at solving 
        * frequency
        * */
-      x_vec  = augment_state_solve(&self,&mut x_vec, &x_vec_n0 );
+      x_vec  = augment_state_solve(&self.get_mut_environment(),&mut x_vec, &x_vec_n0 );
 
       /* Increment counter to trigger [write results to file] */
       write_out_counter += self.dt_s;
@@ -300,7 +269,7 @@ impl DKE {
         || sim_step == num_steps - 1 
       { 
         /* Augment state at writing frequency */
-        x_vec  = augment_state_write(&self, &mut x_vec, &x_vec_n0 );
+        x_vec  = augment_state_write(&self.get_mut_environment(), &mut x_vec, &x_vec_n0 );
         /* Write state to csv */
         write_csv::append_to_csv(&mut results_writer, 
                                  &x_vec,

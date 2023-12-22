@@ -9,7 +9,7 @@
  use ndarray::Array1;
 
  /* Import local crates */
-use crate::dke_core::dke_core::DKE;
+use crate::environment::environment::Environment;
 
  /* Import constants */
 /* None */
@@ -33,10 +33,10 @@ use crate::dke_core::dke_core::DKE;
   *
   */
 pub fn step(x_in: &Array1<f64>,
-            dxdt: &dyn Fn(&Array1<f64>, f64, &DKE) -> Array1<f64>,
+            dxdt: &dyn Fn(&Array1<f64>, f64, &mut Environment) -> Array1<f64>,
             t_in: f64,
             dt: f64,
-            dke_core: &DKE) 
+            environment: &mut Environment) 
 -> Array1<f64>
 {
   let t1: f64 = t_in;
@@ -46,16 +46,16 @@ pub fn step(x_in: &Array1<f64>,
 
   /* Compute forth order Runge-Kutta weighted averages */
   let x_1: Array1<f64> = x_in.clone();
-  let k1: Array1<f64> = dxdt(&x_1, t1, dke_core);
+  let k1: Array1<f64> = dxdt(&x_1, t1, environment);
   
   let x_2: Array1<f64> = x_in.clone() + k1.clone() * (dt / 2.0);
-  let k2: Array1<f64> = dxdt(&x_2, t2, dke_core);
+  let k2: Array1<f64> = dxdt(&x_2, t2, environment);
   
   let x_3: Array1<f64> = x_in.clone() + k2.clone() * (dt * 0.5);
-  let k3: Array1<f64> = dxdt(&x_3, t3, dke_core);
+  let k3: Array1<f64> = dxdt(&x_3, t3, environment);
   
   let x_4: Array1<f64> = x_in.clone() + k3.clone() * dt;
-  let k4: Array1<f64> = dxdt(&x_4, t4, dke_core);
+  let k4: Array1<f64> = dxdt(&x_4, t4, environment);
 
   /* Propagate state at t + dt */
   x_in + (k1 + 2.0 * k2 + 2.0 * k3 + k4) * dt / 6.0

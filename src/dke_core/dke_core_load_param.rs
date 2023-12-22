@@ -49,29 +49,51 @@ pub fn load_dke_core_parameters(dke: &mut DKE)
   let planet_conf = Ini::load_from_file(PLANET_PARAMETER_FILE_PATH)
     .expect(&"! [ERROR] ! > planet.ini not found! <".to_string());
 
-  dke.get_mut_planet().set_semi_major_axis(&(planet_conf
+  dke.get_mut_environment().get_mut_planet().set_semi_major_axis(&(planet_conf
     .section(Some("general")).unwrap()
     .get("planet_semi_major_axis_m").unwrap())
     .parse::<f64>().unwrap() );
 
-  dke.get_mut_planet().set_semi_minor_axis(&(planet_conf
+  dke.get_mut_environment().get_mut_planet().set_semi_minor_axis(&(planet_conf
     .section(Some("general")).unwrap()
     .get("planet_semi_minor_axis_m").unwrap())
     .parse::<f64>().unwrap() );
 
-  dke.get_mut_planet().set_gravitational_constant(&(planet_conf
+  dke.get_mut_environment().get_mut_planet().set_gravitational_constant(&(planet_conf
     .section(Some("general")).unwrap()
     .get("planet_gravitational_constant").unwrap())
     .parse::<f64>().unwrap() );
 
-  dke.get_mut_planet().set_flattening_factor(&(planet_conf
+  dke.get_mut_environment().get_mut_planet().set_flattening_factor(&(planet_conf
     .section(Some("general")).unwrap()
     .get("planet_flattening_factor").unwrap())
     .parse::<f64>().unwrap() );
 
-  dke.get_mut_planet().set_omega(&(planet_conf
+  dke.get_mut_environment().get_mut_planet().set_omega(&(planet_conf
     .section(Some("general")).unwrap()
     .get("planet_omega_rads").unwrap())
     .parse::<f64>().unwrap() );
+
+  /* -------------------------------------------------------------------------
+  *      [PLANET / ATMOSPHERE]
+  * 
+  * -----------------------------------------------------------------------*/
+  let atmosphere_conf: Ini = Ini::load_from_file(ATMOSPHERE_PARAMETER_FILE_PATH)
+    .expect(&"! [ERROR] ! > atmosphere.ini not found! <".to_string());
+
+  dke.get_mut_environment().get_mut_planet().set_enable_atmophere_modelling(&(atmosphere_conf
+      .section(Some("general")).unwrap()
+      .get("flag_enable_atmosphere_modelling").unwrap())
+      .parse::<bool>().unwrap() );
+
+  dke.get_mut_environment().get_mut_planet().set_radio_10_cm_flux(&(atmosphere_conf
+      .section(Some("general")).unwrap()
+      .get("radio_10_cm_flux").unwrap())
+      .parse::<f64>().unwrap() );
+
+  dke.get_mut_environment().get_mut_planet().set_geomagnetic_ap_index(&(atmosphere_conf
+        .section(Some("general")).unwrap()
+        .get("geomagnetic_ap_index").unwrap())
+        .parse::<f64>().unwrap() );
 
 }

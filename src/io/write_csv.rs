@@ -93,7 +93,11 @@ pub fn write_header_to_csv(writer_in: &mut csv::Writer<File>)
                             "longitude_pcpf_deg",
                             "magn_grav_acc_mss",
                             "gast_deg",
-                            "vel_magn_pci_ms"
+                            "vel_magn_pci_ms",
+                            "atmos_density_kgmmm",
+                            "aero_force_pci_n_x",
+                            "aero_force_pci_n_y",
+                            "aero_force_pci_n_z"
                             ])?;
 
  Ok(())

@@ -90,7 +90,7 @@ fn main() {
     /* ---------------------------------------------------------------------- */
     dke.run_simulation();
     
-    /* Debug Earth time functions */
+    /* TODO [Remove] Debug Earth time functions */
     // let date_str = "2023-12-19 16:39:57 +00:00";
     // // let testTime = Utc::now();
     // let testTime = DateTime::parse_from_str(date_str, "%Y-%m-%d %H:%M:%S %z")

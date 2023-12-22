@@ -16,7 +16,7 @@
  * @unit:  N/A
  * @frame: N/A
  */
-pub const STATE_VEC_NUM_ELEMENTS: usize = 28;
+pub const STATE_VEC_NUM_ELEMENTS: usize = 32;
 
 /* 
  * @brief: State vector indices
@@ -54,3 +54,7 @@ pub const STATE_VEC_INDX_POS_PCPF_LONG_DEG: usize  = 24;
 pub const STATE_VEC_INDX_GRAV_ACC_MSS: usize       = 25;
 pub const STATE_VEC_INDX_GAST_DEG: usize           = 26;
 pub const STATE_VEC_INDX_VEL_MAGN_PCI_MS: usize    = 27;
+pub const STATE_VEC_INDX_ATMOS_DENSITY: usize      = 28;
+pub const STATE_VEC_INDX_AERO_FORCE_X: usize       = 29;
+pub const STATE_VEC_INDX_AERO_FORCE_Y: usize       = 30;
+pub const STATE_VEC_INDX_AERO_FORCE_Z: usize       = 31;

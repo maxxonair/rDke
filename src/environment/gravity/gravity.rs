@@ -1,19 +1,19 @@
 /* Include external crates */
-use ndarray::{Array1, s};
+use ndarray::{Array1, ArrayView1, s};
 
 /* Include local crates */
-use crate::dke_core::dke_core::DKE;
+use crate::environment::environment::Environment;
 use crate::math::vec_math::{l2_norm_array1, normalize_array1};
 
 /* Include constants */
 use crate::constants::state::*;
 
-pub fn get_force_in_iframe(state_in: &Array1<f64>, dke: &DKE) -> Array1<f64>
+pub fn get_force_in_iframe(state_in: &Array1<f64>, environment: &Environment) -> Array1<f64>
 { 
   /* Initialize Array1 to store gravity force 
    * @unit: m/ss
    * */
-  let grav_acceleration_mss: f64 = get_grav_acc(&state_in, &dke);
+  let grav_acceleration_mss: f64 = get_grav_acc(state_in, &environment);
 
   let mut position_vec_xyz_m: Array1<f64> = Array1::zeros(3);
   position_vec_xyz_m.assign(&state_in.slice(s![STATE_VEC_INDX_POS_X..(STATE_VEC_INDX_POS_Z+1)]));
@@ -49,7 +49,7 @@ pub fn get_force_in_iframe(state_in: &Array1<f64>, dke: &DKE) -> Array1<f64>
  * @brief: Function to compute the local gravitational acceleration magnitude.
  * @unit: m/second_squared
  */
-pub fn get_grav_acc(state_in: &Array1<f64>, dke: &DKE)
+pub fn get_grav_acc(state_in: &Array1<f64>, environment: &Environment)
 -> f64
 {
   /* Get S/C position in PCI */
@@ -58,8 +58,8 @@ pub fn get_grav_acc(state_in: &Array1<f64>, dke: &DKE)
 
   /* Estimate local radius of the planet at the longitude and latitude of the 
      current S/C's position */
-  let mean_radius_m: f64 = ( dke.get_planet().get_semi_major_axis() 
-      + dke.get_planet().get_semi_minor_axis()) * 0.5;
+  let mean_radius_m: f64 = ( environment.get_planet().get_semi_major_axis() 
+      + environment.get_planet().get_semi_minor_axis()) * 0.5;
   /*
    * Note: We can compare the radii in PCI vs PCPF because we only look at the 
    *       magnitude of both vectors and both coordinate systems share the same 

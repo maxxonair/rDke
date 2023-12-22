@@ -7,7 +7,7 @@ use chrono::*;
 /* None */
 
 /* Include local crates */
-use crate::dke_core::dke_core::DKE;
+use crate::environment::environment::Environment;
 use crate::environment::gravity::gravity::get_grav_acc;
 use crate::math::frame_math::{convert_eci_to_ecef,
                               convert_ecef_to_llr};
@@ -46,23 +46,33 @@ use crate::constants::time::*;
  *                  fields filled.
  * 
  */
-pub fn augment_state_solve(dke: &DKE, x1_inout: &Array1<f64>, x0_in: &Array1<f64>)
+pub fn augment_state_solve(environment: &Environment, x1_inout: &Array1<f64>, x0_in: &Array1<f64>)
 -> Array1<f64>
 {
   let mut x_out = (*x1_inout).clone();
 
   /* Assign simulation time to current state */
-  x_out[STATE_VEC_INDX_SIM_TIME] = dke.get_sim_time_s();
+  x_out[STATE_VEC_INDX_SIM_TIME] = environment.get_sim_time_s();
   /* Update state epoch */
-  x_out[STATE_VEC_INDX_J2000_S] += dke.get_dt_s();
+  x_out[STATE_VEC_INDX_J2000_S] += environment.get_dt_s();
 
   /* Compute linear acceleration from incremental velocity change */
   x_out[STATE_VEC_INDX_ACC_X] = (x_out[STATE_VEC_INDX_VEL_X] 
-    - x0_in[STATE_VEC_INDX_VEL_X]) / dke.get_dt_s();
+    - x0_in[STATE_VEC_INDX_VEL_X]) / environment.get_dt_s();
   x_out[STATE_VEC_INDX_ACC_Y] = (x_out[STATE_VEC_INDX_VEL_Y] 
-    - x0_in[STATE_VEC_INDX_VEL_Y]) / dke.get_dt_s();
+    - x0_in[STATE_VEC_INDX_VEL_Y]) / environment.get_dt_s();
   x_out[STATE_VEC_INDX_ACC_Z] = (x_out[STATE_VEC_INDX_VEL_Z] 
-    - x0_in[STATE_VEC_INDX_VEL_Z]) / dke.get_dt_s();
+    - x0_in[STATE_VEC_INDX_VEL_Z]) / environment.get_dt_s();
+
+  /* The following computes a first approximation of the S/C altitude above ground
+     This will be overwritten for the result output by the augment_state_write() function*/
+  let mut pos_eci_m: Array1<f64> = Array1::zeros(3);
+  pos_eci_m.assign(&x_out.slice(s![STATE_VEC_INDX_POS_X..(STATE_VEC_INDX_POS_Z+1)]));
+
+  x_out[STATE_VEC_INDX_ALTITUDE_PCPF_M] = l2_norm_array1(pos_eci_m.view())
+    - (environment.get_planet().get_semi_major_axis()
+       + environment.get_planet().get_semi_minor_axis()) * 0.5;
+
   x_out
 }
 
@@ -95,7 +105,7 @@ pub fn augment_state_solve(dke: &DKE, x1_inout: &Array1<f64>, x0_in: &Array1<f64
  *                  fields filled.
  * 
  */
-pub fn augment_state_write(dke: &DKE, x1_inout: &Array1<f64>, x0_in: &Array1<f64>)
+pub fn augment_state_write(environment: &Environment, x1_inout: &Array1<f64>, x0_in: &Array1<f64>)
 -> Array1<f64>
 {
   /* TODO */
@@ -125,16 +135,24 @@ pub fn augment_state_write(dke: &DKE, x1_inout: &Array1<f64>, x0_in: &Array1<f64
   x_out[STATE_VEC_INDX_POS_PCPF_LONG_DEG] = (pos_ecef_llr[1]).to_degrees();
 
   x_out[STATE_VEC_INDX_ALTITUDE_PCPF_M] = pos_ecef_llr[2]
-    - (dke.get_planet().get_semi_major_axis()
-       + dke.get_planet().get_semi_minor_axis()) * 0.5;
+    - (environment.get_planet().get_semi_major_axis()
+       + environment.get_planet().get_semi_minor_axis()) * 0.5;
 
   /* Get local magnitude of the gravitational acceleration */
-  x_out[STATE_VEC_INDX_GRAV_ACC_MSS] = get_grav_acc(&x1_inout, &dke);
+  x_out[STATE_VEC_INDX_GRAV_ACC_MSS] = get_grav_acc(&x1_inout, &environment);
 
   /* Compute the magnitude of the velocity vector in PCI frame */
   let mut vel_eci_ms: Array1<f64> = Array1::zeros(3);
   vel_eci_ms.assign(&x_out.slice(s![STATE_VEC_INDX_VEL_X..(STATE_VEC_INDX_VEL_Z+1)]));
   x_out[STATE_VEC_INDX_VEL_MAGN_PCI_MS] = l2_norm_array1(vel_eci_ms.view()); 
+
+  /* Update atmospheric density from Spacecraft struct */
+  x_out[STATE_VEC_INDX_ATMOS_DENSITY] = *environment.get_spacecraft().get_atmos_density_kgmmm();
+
+  /* Update aerodynamic forces on the spacecraft from the spacecraft struct */
+  x_out[STATE_VEC_INDX_AERO_FORCE_X] = *environment.get_spacecraft().get_aero_force_pci_n_x();
+  x_out[STATE_VEC_INDX_AERO_FORCE_Y] = *environment.get_spacecraft().get_aero_force_pci_n_y();
+  x_out[STATE_VEC_INDX_AERO_FORCE_Z] = *environment.get_spacecraft().get_aero_force_pci_n_z();
   
   x_out
 }
