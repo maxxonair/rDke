@@ -8,7 +8,7 @@ use crate::math::vec_math::{l2_norm_array1, normalize_array1};
 /* Include constants */
 use crate::constants::state::*;
 
-pub fn get_force_in_iframe(state_in: &Array1<f64>, environment: &Environment) -> Array1<f64>
+pub fn get_force_vec_iframe(state_in: &Array1<f64>, environment: &Environment) -> Array1<f64>
 { 
   /* Initialize Array1 to store gravity force 
    * @unit: m/ss

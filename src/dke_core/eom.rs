@@ -12,7 +12,6 @@ use crate::constants::general::*;
 
 pub fn dxdt(
     x_in: &Array1<f64>,
-    t_in: f64,
     environment: &mut Environment) 
 -> Array1<f64>
 {
@@ -69,12 +68,12 @@ pub fn get_sum_of_forces(x_n1: &Array1<f64>, environment: &mut Environment) -> A
   let mut sum_of_forces_vec_pci_n: Array1<f64> = Array1::zeros(3);
 
   /* [GRAVITATIONAL FORCES] */
-  sum_of_forces_vec_pci_n += &gravity::get_force_in_iframe(x_n1, &environment);
+  sum_of_forces_vec_pci_n += &gravity::get_force_vec_iframe(x_n1, environment);
   
   /* [AERODYNAMIC FORCES] */
   if *environment.get_planet().is_atmoshpere_modelled() == true
   {
-    sum_of_forces_vec_pci_n += &aerodynamic::get_aerodynamic_force_vec_pci(x_n1.view(), environment);
+    sum_of_forces_vec_pci_n += &aerodynamic::get_force_vec_iframe(x_n1.view(), environment);
   }
 
   sum_of_forces_vec_pci_n

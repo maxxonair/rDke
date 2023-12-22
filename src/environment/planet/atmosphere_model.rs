@@ -2,6 +2,7 @@
 
 /* Include external crates */
 use ndarray::{Array1, ArrayView1, s};
+use libm::exp;
 
 /* Include local crates */
 use crate::environment::environment::Environment;
@@ -28,7 +29,10 @@ pub fn calculate_density(altitude_m: f64, environment: &mut Environment)
   else if altitude_m < 500000.0
   {
     let res: (bool, f64) = calculate_density_earth_model_500(altitude_m, environment);
-    density = res.1;
+    if res.0 == true
+    {
+      density = res.1;
+    }
   }
   else
   {
@@ -107,9 +111,9 @@ fn calculate_density_earth_model_500(altitude_m: f64, environment: &Environment)
   if temp_kelvin != 0.0 && altitude_km >= 180.0 && altitude_km < 500.0
   {
     let mu: f64 = 27.0 - 0.012 * (altitude_km - 200.0) ;
-    let mut base: f64 = 10.0;
-    base = 6.0 * base.powf(-10.0);
-    let density = base.powf( - (altitude_km - 175.0) * mu / temp_kelvin ) ;
+    let base: f64 = 10.0;
+    density = 6.0 * base.powf(-10.0) * exp( -1.0 * (altitude_km - 175.0) * mu / temp_kelvin ) ;
+    valid = true;
   }
   (valid, density)
 }

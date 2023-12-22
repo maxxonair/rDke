@@ -33,29 +33,23 @@ use crate::environment::environment::Environment;
   *
   */
 pub fn step(x_in: &Array1<f64>,
-            dxdt: &dyn Fn(&Array1<f64>, f64, &mut Environment) -> Array1<f64>,
-            t_in: f64,
+            dxdt: &dyn Fn(&Array1<f64>, &mut Environment) -> Array1<f64>,
             dt: f64,
             environment: &mut Environment) 
 -> Array1<f64>
 {
-  let t1: f64 = t_in;
-  let t2: f64 = t_in + (dt / 2.0);
-  let t3: f64 = t_in + (dt / 2.0);
-  let t4: f64 = t_in + dt;
-
   /* Compute forth order Runge-Kutta weighted averages */
   let x_1: Array1<f64> = x_in.clone();
-  let k1: Array1<f64> = dxdt(&x_1, t1, environment);
+  let k1: Array1<f64> = dxdt(&x_1, environment);
   
   let x_2: Array1<f64> = x_in.clone() + k1.clone() * (dt / 2.0);
-  let k2: Array1<f64> = dxdt(&x_2, t2, environment);
+  let k2: Array1<f64> = dxdt(&x_2, environment);
   
-  let x_3: Array1<f64> = x_in.clone() + k2.clone() * (dt * 0.5);
-  let k3: Array1<f64> = dxdt(&x_3, t3, environment);
+  let x_3: Array1<f64> = x_in.clone() + k2.clone() * (dt / 2.0);
+  let k3: Array1<f64> = dxdt(&x_3, environment);
   
   let x_4: Array1<f64> = x_in.clone() + k3.clone() * dt;
-  let k4: Array1<f64> = dxdt(&x_4, t4, environment);
+  let k4: Array1<f64> = dxdt(&x_4, environment);
 
   /* Propagate state at t + dt */
   x_in + (k1 + 2.0 * k2 + 2.0 * k3 + k4) * dt / 6.0

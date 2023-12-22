@@ -205,10 +205,10 @@ impl DKE {
     let mut results_writer = write_csv::create_csv(
       "./data_out/out.csv".to_string());
 
-    log.rLogMsg("---------------------------------------------------------------");
-    log.rLogMsg("              [SIMULATION START]");
-    log.rLogMsg("---------------------------------------------------------------");
-    log.rLogMsg("");
+    log.log_msg("---------------------------------------------------------------");
+    log.log_msg("              [SIMULATION START]");
+    log.log_msg("---------------------------------------------------------------");
+    log.log_msg("");
 
     /* Create timer for runtime profiling */
     let simulation_timer = Instant::now();
@@ -223,7 +223,7 @@ impl DKE {
     write_csv::append_to_csv(&mut results_writer, &x_vec,self.sim_current_time_s).unwrap();
 
     /* ---------------------------------------------------------------------- */
-    /* Simulation main loop */
+    /* [!] -----> Simulation main loop                                        */
     for sim_step in tqdm(0..num_steps).style(tqdm::Style::Block) {
 
       /* Write Simulation status to console  */
@@ -231,7 +231,7 @@ impl DKE {
         || sim_step == 0
         || sim_step == num_steps - 1
       {
-        log.rLogDbg(&format!("SimTime [s] {:.3?} ( {:.2?}  {:.2?}  {:.2?} ) ->> Altitude [m] {:.2?}", 
+        log.log_dbg(&format!("SimTime [s] {:.3?} ( {:.2?}  {:.2?}  {:.2?} ) ->> Altitude [m] {:.2?}", 
         self.sim_current_time_s, x_vec[STATE_VEC_INDX_POS_X], x_vec[STATE_VEC_INDX_POS_Y], 
         x_vec[STATE_VEC_INDX_POS_Z], self.state.get_altitude(&x_vec)));
         print_out_counter = 0.0;
@@ -243,7 +243,6 @@ impl DKE {
       /* +_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_ */
       x_vec = step( &x_vec, 
                           &dxdt, 
-                          self.sim_current_time_s, 
                           self.dt_s, 
                           &mut self.environment);
       /* +_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_ */
@@ -291,8 +290,8 @@ impl DKE {
       /* Check if early exit condition is met */
       if self.is_exit_conditions(&x_vec) == true
       {
-        log.rLogWrn("!! [ Exit Simulation ] !!");
-        log.rLogWrn("Early exit condition: [altitude below zero]");
+        log.log_wrn("!! [ Exit Simulation ] !!");
+        log.log_wrn("Early exit condition: [altitude below zero]");
         break;
       }
     } /* for(sim_step */
@@ -303,33 +302,33 @@ impl DKE {
     flush_csv_writer(&mut results_writer).unwrap();
 
     /* Print summary on completed simulation */
-    log.rLogMsg("");
-    log.rLogMsg("---------------------------------------------------------------");
-    log.rLogMsg("              [FINISHED]");
-    log.rLogMsg("---------------------------------------------------------------");
-    log.rLogMsg(&format!("Simulated time                      [s] : {:.1}", 
+    log.log_msg("");
+    log.log_msg("---------------------------------------------------------------");
+    log.log_msg("              [FINISHED]");
+    log.log_msg("---------------------------------------------------------------");
+    log.log_msg(&format!("Simulated time                      [s] : {:.1}", 
       x_vec[STATE_VEC_INDX_SIM_TIME] ));
-    log.rLogMsg(&format!("Runtime                             [s] : {:.3?}", 
+    log.log_msg(&format!("Runtime                             [s] : {:.3?}", 
     (simulation_timer.elapsed().as_millis() as f64) / 1000.0) );
-    log.rLogMsg(&format!("Number of integration steps             : {:?}", 
+    log.log_msg(&format!("Number of integration steps             : {:?}", 
       num_steps));
-    log.rLogMsg(&format!("Step size                          [ms] : {:?}", 
+    log.log_msg(&format!("Step size                          [ms] : {:?}", 
       self.dt_s*1000.0));
-    log.rLogMsg(&format!("Simulation time                    [ms] : {:.3?}", 
+    log.log_msg(&format!("Simulation time                    [ms] : {:.3?}", 
       simulation_timer.elapsed().as_millis()) );
-    log.rLogMsg(&format!("Exec time per step                 [ms] : {:.6?}", 
+    log.log_msg(&format!("Exec time per step                 [ms] : {:.6?}", 
       (simulation_timer.elapsed().as_millis() as f64) / num_steps as f64));
-    log.rLogMsg(&format!("Simulated time / time to simulate   [-] : {:.1?}", 
+    log.log_msg(&format!("Simulated time / time to simulate   [-] : {:.1?}", 
       ((self.sim_end_time_s - self.sim_start_time_s) / simulation_timer
                                                         .elapsed()
                                                         .as_millis() as f64) * 1000.0));
-    log.rLogMsg("---------------------------------------------------------------");
+    log.log_msg("---------------------------------------------------------------");
     /* Call Plotting functions on results */
     // TODO add enabler flags for postprocessing charts
-    log.rLogMsg("[Save Plot] -> S/C ground track");
+    log.log_msg("[Save Plot] -> S/C ground track");
     plot_sc_groundtrack(&"./data_out/out.csv".to_string()).unwrap();
 
-    log.rLogMsg("[Save Plot] -> S/C altitude vs longitiude");
+    log.log_msg("[Save Plot] -> S/C altitude vs longitiude");
     plot_sc_altitude_vs_longitude(&"./data_out/out.csv".to_string()).unwrap();
     
     log.close();

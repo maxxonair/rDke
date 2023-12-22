@@ -74,7 +74,7 @@ impl RLog {
   /* ------------------------------------------------------------------------ */
   /*                      [message functions] */
   /* ------------------------------------------------------------------------ */
-  pub fn rLogMsg(&mut self, msg_str_in: &str) {
+  pub fn log_msg(&mut self, msg_str_in: &str) {
     /* Initialize complete message string */
     let mut msg_string: String = "".to_owned();
     /* Add message count */
@@ -91,7 +91,7 @@ impl RLog {
     self.msg_counter += 1;
   }
 
-  pub fn rLogWrn(&mut self, msg_str_in: &str) {
+  pub fn log_wrn(&mut self, msg_str_in: &str) {
     /* Initialize complete message string */
     let mut msg_string: String = "".to_owned();
     /* Add message count */
@@ -109,7 +109,7 @@ impl RLog {
   }
 
 
-  pub fn rLogErr(&mut self, msg_str_in: &str) {
+  pub fn log_err(&mut self, msg_str_in: &str) {
     /* Initialize complete message string */
     let mut msg_string: String = "".to_owned();
     /* Add message count */
@@ -126,7 +126,7 @@ impl RLog {
     self.msg_counter += 1;
   }
 
-  pub fn rLogDbg(&mut self, msg_str_in: &str) {
+  pub fn log_dbg(&mut self, msg_str_in: &str) {
     /* Only show debug messages if enabled */
     if self.enable_debug_msgs == true
     {

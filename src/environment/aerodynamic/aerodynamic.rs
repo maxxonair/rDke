@@ -20,7 +20,7 @@ use crate::constants::general::*;
  * @frame: PCI
  * 
  */
-pub fn get_aerodynamic_force_vec_pci(state_in: ArrayView1<f64>, environment: &mut Environment)
+pub fn get_force_vec_iframe(state_in: ArrayView1<f64>, environment: &mut Environment)
 -> Array1<f64>
 {
   let mut sum_of_forces_vec_pci_n: Array1<f64> = Array1::zeros(3);
@@ -58,9 +58,9 @@ fn get_newtonian_flow_force_vec(state_in: ArrayView1<f64>, environment: &mut Env
   V_infinity.assign(&state_in.slice(s![STATE_VEC_INDX_VEL_X..(STATE_VEC_INDX_VEL_Z+1)]));
 
   // TODO: parameterize this
-  let A_effective_m2: f64 = 1.5;
+  let a_effective_mm: f64 = 1.5;
 
-  sum_of_forces_vec_pci_n = -1.0 * (density * A_effective_m2) * pointwise_square(V_infinity) ;
+  sum_of_forces_vec_pci_n = -1.0 * (density * a_effective_mm) * pointwise_square(V_infinity) ;
 
   sum_of_forces_vec_pci_n
 }
