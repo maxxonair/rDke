@@ -74,7 +74,7 @@ pub fn load_dke_core_parameters(dke: &mut DKE)
     .get("planet_omega_rads").unwrap())
     .parse::<f64>().unwrap() );
 
-  /* -------------------------------------------------------------------------
+ /* -------------------------------------------------------------------------
   *      [PLANET / ATMOSPHERE]
   * 
   * -----------------------------------------------------------------------*/
@@ -95,5 +95,22 @@ pub fn load_dke_core_parameters(dke: &mut DKE)
         .section(Some("general")).unwrap()
         .get("geomagnetic_ap_index").unwrap())
         .parse::<f64>().unwrap() );
+      
+   /* -------------------------------------------------------------------------
+    *      [SPACECRAFT]
+    * 
+    * -----------------------------------------------------------------------*/
+    let sim_conf: Ini = Ini::load_from_file(SIM_PARAMETER_FILE_PATH)
+    .expect(&"! [ERROR] ! > sim.ini not found! <".to_string());
+
+    dke.get_mut_environment().get_mut_spacecraft().set_sc_aero_eff_area_mm(&(sim_conf
+      .section(Some("start_state")).unwrap()
+      .get("sc_eff_aero_area_mm").unwrap())
+      .parse::<f64>().unwrap() );
+
+    dke.get_mut_environment().get_mut_spacecraft().set_sc_mass_kg(&(sim_conf
+      .section(Some("start_state")).unwrap()
+      .get("sc_mass_start_kg").unwrap())
+      .parse::<f64>().unwrap() );
 
 }

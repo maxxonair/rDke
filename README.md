@@ -13,6 +13,28 @@ The central body is generally referred to as planet and defined by the planet.in
 configuration file. However the central body might be as well set up to be a moon, 
 an asteroid or the sun. 
 
+## [Models]
+
+### Overview - Environment models
+
+| Modelling parameter  | Force model  |  Reference |
+|---|---|---| 
+| Earth gravitational field  | TODO GGM03 model <br> Simplified gravity model without spherical harmonics  |   |
+| Third body  | TODO Sun and moon  |   |
+| Solar radiation pressure  | TODO cannonball model  |   |
+| Atmophere | TODO NRLMSISE-00 atmosphere model <br> Low density model for altitudes of 180 - 500 km   |   |
+| Aerodynamic drag/lift  |  TODO continous flow aerodynamic <br> TODO transitional flow <br> Newtonian flow drag for free molecular flow zone |   |
+
+### Overview - Spacecraft models
+
+| Modelling parameter  | Model  |  Reference |
+|---|---|---| 
+| TODO |   |   |
+
+## [Solver]
+
+The fourth order Runge-Kutta algorithm (rk4) is used to numerically integrate the set of differential equations with a fixed step size (simulation setting parameter). This allows for a computational efficient solving process.  
+
 ## [Coordinate frames]
 
 Generic coordinate frame conventions used here

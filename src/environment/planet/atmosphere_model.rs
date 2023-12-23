@@ -1,14 +1,13 @@
 
 
 /* Include external crates */
-use ndarray::{Array1, ArrayView1, s};
 use libm::exp;
 
 /* Include local crates */
 use crate::environment::environment::Environment;
 
 /* Include constants */
-use crate::constants::state::*;
+/* None */
 
 /*
  * @brief: Main function to return the atmospheric density for a given altitude.
@@ -88,6 +87,9 @@ fn calculate_density_earth_cira_model_180()
  *
  *         * We use the solar radio ten centimetre flux (F10) as a proxy for the solar EUV output,
  *         * The geomagnetic Ap index as a proxy for the geomagnetic activity
+ *         * Both modelling parameters are momentuous values that should be averaged to 
+ *           achieve a statistical representation of the space weather in the simulated
+ *           time frame. 
  * 
  *         ! NOTE: The output of this function is only valid for an altitude between
  *                 180 and 500 km 

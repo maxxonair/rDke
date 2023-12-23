@@ -23,13 +23,12 @@ use crate::constants::general::*;
 pub fn get_force_vec_iframe(state_in: ArrayView1<f64>, environment: &mut Environment)
 -> Array1<f64>
 {
-  let mut sum_of_forces_vec_pci_n: Array1<f64> = Array1::zeros(3);
   // TODO: fill with content to correctly determine aerodynamic forces in PCI frame
-  sum_of_forces_vec_pci_n = get_newtonian_flow_force_vec(state_in, environment);
+  let sum_of_forces_vec_pci_n: Array1<f64> = get_newtonian_flow_force_vec(state_in, environment);
 
   environment.get_mut_spacecraft().set_aero_force_pci_n_x(&sum_of_forces_vec_pci_n[VEC_X]);
-  environment.get_mut_spacecraft().set_aero_force_pci_n_x(&sum_of_forces_vec_pci_n[VEC_Y]);
-  environment.get_mut_spacecraft().set_aero_force_pci_n_x(&sum_of_forces_vec_pci_n[VEC_Z]);
+  environment.get_mut_spacecraft().set_aero_force_pci_n_y(&sum_of_forces_vec_pci_n[VEC_Y]);
+  environment.get_mut_spacecraft().set_aero_force_pci_n_z(&sum_of_forces_vec_pci_n[VEC_Z]);
 
   sum_of_forces_vec_pci_n
 }
@@ -47,20 +46,16 @@ pub fn get_force_vec_iframe(state_in: ArrayView1<f64>, environment: &mut Environ
 fn get_newtonian_flow_force_vec(state_in: ArrayView1<f64>, environment: &mut Environment)
 -> Array1<f64>
 {
-  /* initialize force vector in PCI frame */
-  let mut sum_of_forces_vec_pci_n: Array1<f64> = Array1::zeros(3);
 
   /* Get local atmospheric density from atmosphere model */
   let density: f64 = atmosphere_model::calculate_density(state_in[STATE_VEC_INDX_ALTITUDE_PCPF_M], environment);
   
   /* Get velocity vector in PCI frame from state vector */
-  let mut V_infinity: Array1<f64> = Array1::zeros(3);
-  V_infinity.assign(&state_in.slice(s![STATE_VEC_INDX_VEL_X..(STATE_VEC_INDX_VEL_Z+1)]));
+  let mut v_infinity: Array1<f64> = Array1::zeros(3);
+  v_infinity.assign(&state_in.slice(s![STATE_VEC_INDX_VEL_X..(STATE_VEC_INDX_VEL_Z+1)]));
 
-  // TODO: parameterize this
-  let a_effective_mm: f64 = 1.5;
-
-  sum_of_forces_vec_pci_n = -1.0 * (density * a_effective_mm) * pointwise_square(V_infinity) ;
+  let sum_of_forces_vec_pci_n: Array1<f64> = -1.0 * (density * environment.get_spacecraft().get_sc_aero_eff_area_mm()) 
+                                            * pointwise_square(v_infinity) ;
 
   sum_of_forces_vec_pci_n
 }
