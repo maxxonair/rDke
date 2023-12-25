@@ -88,7 +88,19 @@ pub struct State {
    * @unit        : m/s
    * 
    * */
-   vel_magn_pci_ms: f64
+   vel_magn_pci_ms: f64,
+  /* [aerodynamic drag coefficient] 
+   * @description : Aerodynamic drag coefficient
+   * @unit        : None
+   * 
+   * */
+   aero_drag_coeff: f64,
+  /* [ballistic coefficient] 
+   * @description : Ballistic coefficient
+   * @unit        : kg / (m * m)
+   * 
+   * */
+   ballistic_coeff_kgmm: f64
 }
 
 
@@ -107,6 +119,8 @@ impl State {
       state_since_epoch_j2000_s: 0.0,
       state_gast_deg: 0.0,
       vel_magn_pci_ms: 0.0,
+      aero_drag_coeff: 0.0,
+      ballistic_coeff_kgmm: 0.0,
     }
   }
 }
@@ -229,6 +243,9 @@ impl State {
     /* [State velocity mangitude in inertial frame] */
     vec_out[STATE_VEC_INDX_VEL_MAGN_PCI_MS] = self.vel_magn_pci_ms;
 
+    vec_out[STATE_VEC_INDX_DRAG_COEFF] = self.aero_drag_coeff;
+    vec_out[STATE_VEC_INDX_BALLISTIC_COEFF] = self.ballistic_coeff_kgmm;
+
     vec_out
   }
 }
@@ -342,6 +359,9 @@ impl State
     self.state_gast_deg = state_vec_in[STATE_VEC_INDX_GAST_DEG] ;
 
     self.vel_magn_pci_ms = state_vec_in[STATE_VEC_INDX_VEL_MAGN_PCI_MS] ;
+
+    self.aero_drag_coeff = state_vec_in[STATE_VEC_INDX_DRAG_COEFF] ;
+    self.ballistic_coeff_kgmm = state_vec_in[STATE_VEC_INDX_BALLISTIC_COEFF] ;
 
   }
 }

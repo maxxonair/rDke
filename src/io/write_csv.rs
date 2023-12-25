@@ -43,21 +43,24 @@ pub fn create_csv(file_path_in: String)
  * @brief: Function to append a row to csv file writer (writer_in)
  */
 pub fn append_to_csv(writer_in: &mut csv::Writer<File>,
-                    data_row_in: &Array1<f64>,
-                    simtime_s: f64) 
+                    data_row_in: &Array1<f64>) 
 -> Result<(), Box<dyn Error>>
 {
-  let mut data_out: [String; STATE_VEC_NUM_ELEMENTS] = Default::default();
+  let mut data_out: Vec<String> = vec!["".to_string()];
 
-  for n in 0..STATE_VEC_NUM_ELEMENTS
+  /* Initialize row with simtime */
+  data_out[0] = data_row_in[STATE_VEC_INDX_SIM_TIME].to_string();
+
+  for n in 1..STATE_VEC_NUM_ELEMENTS
   {
-    data_out[n] = data_row_in[n].to_string();
+    data_out.push(data_row_in[n].to_string())
   }
 
   writer_in.write_record(data_out)?;
 
   Ok(())
 }
+
 
 /*
  * @brief: Function to write csv header  
@@ -97,7 +100,9 @@ pub fn write_header_to_csv(writer_in: &mut csv::Writer<File>)
                             "atmos_density_kgmmm",
                             "aero_force_pci_n_x",
                             "aero_force_pci_n_y",
-                            "aero_force_pci_n_z"
+                            "aero_force_pci_n_z",
+                            "aero_drag_coeff",
+                            "ballistic_coeff_kgmm"
                             ])?;
 
  Ok(())

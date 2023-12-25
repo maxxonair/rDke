@@ -54,6 +54,9 @@ pub fn find_min_vec_f64(vec: &Vec<f64>) -> f64 {
  * @brief: Pointwise square a Array1 vector 
  * 
  */
-pub fn pointwise_square(arr: Array1<f64>) -> Array1<f64> {
-  arr.mapv(|x| x * x)
+pub fn pointwise_square(arr: ArrayView1<f64>) -> Array1<f64> {
+  let mut arr_out: Array1<f64> = Array1::zeros(arr.len());
+
+  arr_out = arr.mapv(|x| x * x);
+  arr_out
 }

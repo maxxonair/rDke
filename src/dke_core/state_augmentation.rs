@@ -154,5 +154,20 @@ pub fn augment_state_write(environment: &Environment, x1_inout: &Array1<f64>, x0
   x_out[STATE_VEC_INDX_AERO_FORCE_Y] = *environment.get_spacecraft().get_aero_force_pci_n_y();
   x_out[STATE_VEC_INDX_AERO_FORCE_Z] = *environment.get_spacecraft().get_aero_force_pci_n_z();
   
+  /* Get aerodynamic force vector in PCI frame from state vector */
+  let mut aero_force_vec: Array1<f64> = Array1::zeros(3);
+  aero_force_vec.assign(&x_out.slice(s![STATE_VEC_INDX_AERO_FORCE_X..(STATE_VEC_INDX_AERO_FORCE_Z+1)]));
+ 
+  let aero_force_magn_n: f64 = l2_norm_array1(aero_force_vec.view());
+
+  /* Compute drag coefficient from drag froce and effective surface area */
+  x_out[STATE_VEC_INDX_DRAG_COEFF] = 2.0 * aero_force_magn_n 
+        / (x_out[STATE_VEC_INDX_ATMOS_DENSITY] 
+          * x_out[STATE_VEC_INDX_VEL_MAGN_PCI_MS] * x_out[STATE_VEC_INDX_VEL_MAGN_PCI_MS] 
+          * *environment.get_spacecraft().get_sc_aero_eff_area_mm());
+
+  x_out[STATE_VEC_INDX_BALLISTIC_COEFF] =  environment.get_spacecraft().get_sc_mass_kg() 
+    / (x_out[STATE_VEC_INDX_DRAG_COEFF] * environment.get_spacecraft().get_sc_aero_eff_area_mm())  ;
+
   x_out
 }

@@ -31,7 +31,9 @@ use crate::dke_core::state_augmentation::{augment_state_solve,
 use crate::dke_core::dke_core_load_param::load_dke_core_parameters;
 use crate::util::rlog::RLog;
 use crate::util::plot::{plot_sc_groundtrack, 
-                        plot_sc_altitude_vs_longitude};
+                        plot_sc_altitude_vs_longitude,
+                        plot_sc_altitude_vs_simtime,
+                        plot_sc_dragcoeff_vs_altitude};
 
 /* Import constants */
 use crate::constants::state::*;
@@ -220,7 +222,7 @@ impl DKE {
 
     /* Write initial state to csv */
     x_vec  = augment_state_write(&self.get_mut_environment(), &mut x_vec, &x_vec_n0 );
-    write_csv::append_to_csv(&mut results_writer, &x_vec,self.sim_current_time_s).unwrap();
+    write_csv::append_to_csv(&mut results_writer, &x_vec).unwrap();
 
     /* ---------------------------------------------------------------------- */
     /* [!] -----> Simulation main loop                                        */
@@ -271,8 +273,7 @@ impl DKE {
         x_vec  = augment_state_write(&self.get_mut_environment(), &mut x_vec, &x_vec_n0 );
         /* Write state to csv */
         write_csv::append_to_csv(&mut results_writer, 
-                                 &x_vec,
-                                 self.sim_current_time_s).unwrap();
+                                 &x_vec).unwrap();
         write_out_counter = 0.0;
       }
 
@@ -331,6 +332,11 @@ impl DKE {
     log.log_msg("[Save Plot] -> S/C altitude vs longitiude");
     plot_sc_altitude_vs_longitude(&"./data_out/out.csv".to_string()).unwrap();
     
+    log.log_msg("[Save Plot] -> S/C altitude vs simtime");
+    plot_sc_altitude_vs_simtime(&"./data_out/out.csv".to_string()).unwrap();
+
+    log.log_msg("[Save Plot] -> S/C drag coefficient vs altitude");
+    plot_sc_dragcoeff_vs_altitude(&"./data_out/out.csv".to_string()).unwrap();
     log.close();
   }
 
