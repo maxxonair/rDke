@@ -49,31 +49,31 @@ use crate::constants::time::*;
 pub fn augment_state_solve(environment: &Environment, x1_inout: &Array1<f64>, x0_in: &Array1<f64>)
 -> Array1<f64>
 {
-  let mut x_out = (*x1_inout).clone();
+  let mut state_vec_out = (*x1_inout).clone();
 
   /* Assign simulation time to current state */
-  x_out[STATE_VEC_INDX_SIM_TIME] = environment.get_sim_time_s();
+  state_vec_out[STATE_VEC_INDX_SIM_TIME] = environment.get_sim_time_s();
   /* Update state epoch */
-  x_out[STATE_VEC_INDX_J2000_S] += environment.get_dt_s();
+  state_vec_out[STATE_VEC_INDX_J2000_S] += environment.get_dt_s();
 
   /* Compute linear acceleration from incremental velocity change */
-  x_out[STATE_VEC_INDX_ACC_X] = (x_out[STATE_VEC_INDX_VEL_X] 
+  state_vec_out[STATE_VEC_INDX_ACC_X] = (state_vec_out[STATE_VEC_INDX_VEL_X] 
     - x0_in[STATE_VEC_INDX_VEL_X]) / environment.get_dt_s();
-  x_out[STATE_VEC_INDX_ACC_Y] = (x_out[STATE_VEC_INDX_VEL_Y] 
+  state_vec_out[STATE_VEC_INDX_ACC_Y] = (state_vec_out[STATE_VEC_INDX_VEL_Y] 
     - x0_in[STATE_VEC_INDX_VEL_Y]) / environment.get_dt_s();
-  x_out[STATE_VEC_INDX_ACC_Z] = (x_out[STATE_VEC_INDX_VEL_Z] 
+  state_vec_out[STATE_VEC_INDX_ACC_Z] = (state_vec_out[STATE_VEC_INDX_VEL_Z] 
     - x0_in[STATE_VEC_INDX_VEL_Z]) / environment.get_dt_s();
 
   /* The following computes a first approximation of the S/C altitude above ground
      This will be overwritten for the result output by the augment_state_write() function*/
   let mut pos_eci_m: Array1<f64> = Array1::zeros(3);
-  pos_eci_m.assign(&x_out.slice(s![STATE_VEC_INDX_POS_X..(STATE_VEC_INDX_POS_Z+1)]));
+  pos_eci_m.assign(&state_vec_out.slice(s![STATE_VEC_INDX_POS_X..(STATE_VEC_INDX_POS_Z+1)]));
 
-  x_out[STATE_VEC_INDX_ALTITUDE_PCPF_M] = l2_norm_array1(pos_eci_m.view())
+  state_vec_out[STATE_VEC_INDX_ALTITUDE_PCPF_M] = l2_norm_array1(pos_eci_m.view())
     - (environment.get_planet().get_semi_major_axis()
        + environment.get_planet().get_semi_minor_axis()) * 0.5;
 
-  x_out
+  state_vec_out
 }
 
 
@@ -109,11 +109,11 @@ pub fn augment_state_write(environment: &Environment, x1_inout: &Array1<f64>, x0
 -> Array1<f64>
 {
   /* TODO */
-  let mut x_out = (*x1_inout).clone();
+  let mut state_vec_out = (*x1_inout).clone();
 
   /* Get position in PCI frame from state vector */
   let mut pos_eci_m: Array1<f64> = Array1::zeros(3);
-  pos_eci_m.assign(&x_out.slice(s![STATE_VEC_INDX_POS_X..(STATE_VEC_INDX_POS_Z+1)]));
+  pos_eci_m.assign(&state_vec_out.slice(s![STATE_VEC_INDX_POS_X..(STATE_VEC_INDX_POS_Z+1)]));
 
   /* Get position in PCPF frame from eci position and current time */
   let unix_time_ms: i64 = ((x1_inout[STATE_VEC_INDX_J2000_S] 
@@ -125,49 +125,49 @@ pub fn augment_state_write(environment: &Environment, x1_inout: &Array1<f64>, x0
   let gast_deg: f64 = calc_earth_gast_deg(datetime);
   
   /* Update Greenwich aparent sidreal time in degree */
-  x_out[STATE_VEC_INDX_GAST_DEG] = gast_deg;
+  state_vec_out[STATE_VEC_INDX_GAST_DEG] = gast_deg;
 
   let pos_ecef_m: Array1<f64> = convert_eci_to_ecef(&pos_eci_m, gast_deg);
   let pos_ecef_llr: Array1<f64> = convert_ecef_to_llr(pos_ecef_m.view());
 
   /* Update Latitude / Longitude in ECEF  */
-  x_out[STATE_VEC_INDX_POS_PCPF_LAT_DEG] = (pos_ecef_llr[0]).to_degrees();
-  x_out[STATE_VEC_INDX_POS_PCPF_LONG_DEG] = (pos_ecef_llr[1]).to_degrees();
+  state_vec_out[STATE_VEC_INDX_POS_PCPF_LAT_DEG] = (pos_ecef_llr[0]).to_degrees();
+  state_vec_out[STATE_VEC_INDX_POS_PCPF_LONG_DEG] = (pos_ecef_llr[1]).to_degrees();
 
-  x_out[STATE_VEC_INDX_ALTITUDE_PCPF_M] = pos_ecef_llr[2]
+  state_vec_out[STATE_VEC_INDX_ALTITUDE_PCPF_M] = pos_ecef_llr[2]
     - (environment.get_planet().get_semi_major_axis()
        + environment.get_planet().get_semi_minor_axis()) * 0.5;
 
   /* Get local magnitude of the gravitational acceleration */
-  x_out[STATE_VEC_INDX_GRAV_ACC_MSS] = get_grav_acc(&x1_inout, &environment);
+  state_vec_out[STATE_VEC_INDX_GRAV_ACC_MSS] = get_grav_acc(&x1_inout, &environment);
 
   /* Compute the magnitude of the velocity vector in PCI frame */
   let mut vel_eci_ms: Array1<f64> = Array1::zeros(3);
-  vel_eci_ms.assign(&x_out.slice(s![STATE_VEC_INDX_VEL_X..(STATE_VEC_INDX_VEL_Z+1)]));
-  x_out[STATE_VEC_INDX_VEL_MAGN_PCI_MS] = l2_norm_array1(vel_eci_ms.view()); 
+  vel_eci_ms.assign(&state_vec_out.slice(s![STATE_VEC_INDX_VEL_X..(STATE_VEC_INDX_VEL_Z+1)]));
+  state_vec_out[STATE_VEC_INDX_VEL_MAGN_PCI_MS] = l2_norm_array1(vel_eci_ms.view()); 
 
   /* Update atmospheric density from Spacecraft struct */
-  x_out[STATE_VEC_INDX_ATMOS_DENSITY] = *environment.get_spacecraft().get_atmos_density_kgmmm();
+  state_vec_out[STATE_VEC_INDX_ATMOS_DENSITY] = *environment.get_planet().get_atmosphere().get_density_kgmmm();
 
   /* Update aerodynamic forces on the spacecraft from the spacecraft struct */
-  x_out[STATE_VEC_INDX_AERO_FORCE_X] = *environment.get_spacecraft().get_aero_force_pci_n_x();
-  x_out[STATE_VEC_INDX_AERO_FORCE_Y] = *environment.get_spacecraft().get_aero_force_pci_n_y();
-  x_out[STATE_VEC_INDX_AERO_FORCE_Z] = *environment.get_spacecraft().get_aero_force_pci_n_z();
+  state_vec_out[STATE_VEC_INDX_AERO_FORCE_X] = *environment.get_spacecraft().get_aero_force_pci_n_x();
+  state_vec_out[STATE_VEC_INDX_AERO_FORCE_Y] = *environment.get_spacecraft().get_aero_force_pci_n_y();
+  state_vec_out[STATE_VEC_INDX_AERO_FORCE_Z] = *environment.get_spacecraft().get_aero_force_pci_n_z();
   
   /* Get aerodynamic force vector in PCI frame from state vector */
   let mut aero_force_vec: Array1<f64> = Array1::zeros(3);
-  aero_force_vec.assign(&x_out.slice(s![STATE_VEC_INDX_AERO_FORCE_X..(STATE_VEC_INDX_AERO_FORCE_Z+1)]));
+  aero_force_vec.assign(&state_vec_out.slice(s![STATE_VEC_INDX_AERO_FORCE_X..(STATE_VEC_INDX_AERO_FORCE_Z+1)]));
  
   let aero_force_magn_n: f64 = l2_norm_array1(aero_force_vec.view());
 
   /* Compute drag coefficient from drag froce and effective surface area */
-  x_out[STATE_VEC_INDX_DRAG_COEFF] = 2.0 * aero_force_magn_n 
-        / (x_out[STATE_VEC_INDX_ATMOS_DENSITY] 
-          * x_out[STATE_VEC_INDX_VEL_MAGN_PCI_MS] * x_out[STATE_VEC_INDX_VEL_MAGN_PCI_MS] 
+  state_vec_out[STATE_VEC_INDX_DRAG_COEFF] = 2.0 * aero_force_magn_n 
+        / (state_vec_out[STATE_VEC_INDX_ATMOS_DENSITY] 
+          * state_vec_out[STATE_VEC_INDX_VEL_MAGN_PCI_MS] * state_vec_out[STATE_VEC_INDX_VEL_MAGN_PCI_MS] 
           * *environment.get_spacecraft().get_sc_aero_eff_area_mm());
 
-  x_out[STATE_VEC_INDX_BALLISTIC_COEFF] =  environment.get_spacecraft().get_sc_mass_kg() 
-    / (x_out[STATE_VEC_INDX_DRAG_COEFF] * environment.get_spacecraft().get_sc_aero_eff_area_mm())  ;
+  state_vec_out[STATE_VEC_INDX_BALLISTIC_COEFF] =  environment.get_spacecraft().get_sc_mass_kg() 
+    / (state_vec_out[STATE_VEC_INDX_DRAG_COEFF] * environment.get_spacecraft().get_sc_aero_eff_area_mm())  ;
 
-  x_out
+  state_vec_out
 }

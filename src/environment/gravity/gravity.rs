@@ -21,13 +21,13 @@ pub fn get_force_vec_iframe(state_in: &Array1<f64>, environment: &Environment) -
   
   let sc_mass_kg: f64 = state_in[STATE_VEC_INDX_MASS];
   
-  /* Initialise output vector to store the gravitational force  
+ /* Initialise output vector to store the gravitational force  
   * @unit: Newton
   * @frame: PCI
   */
   let mut grav_force_pci_n_out: Array1<f64> = Array1::zeros(3);
   
-  /* Check position is at least 10 cm away from the center of the inertial 
+ /* Check position is at least 10 cm away from the center of the inertial 
   * planet centered frame in which case the gravitational force cannot be 
   * computed
   * */

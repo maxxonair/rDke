@@ -25,9 +25,9 @@ pub fn load_dke_core_parameters(dke: &mut DKE)
   let sim_conf = Ini::load_from_file(SIM_PARAMETER_FILE_PATH)
     .expect(&"! [ERROR] ! > sim.ini not found! <".to_string());
   /* -------------------------------------------------------------------------
-    * WRITE/PRINT Intervals
-    * 
-    * -----------------------------------------------------------------------*/
+  * WRITE/PRINT Intervals
+  * 
+  * -----------------------------------------------------------------------*/
   dke.set_param_sim_print_interval_s(&((sim_conf
       .section(Some("print_setting")).unwrap()
       .get("sim_print_interval_s").unwrap())
@@ -43,9 +43,9 @@ pub fn load_dke_core_parameters(dke: &mut DKE)
     .get("sim_archive_flush_interval_s").unwrap())
     .parse::<f64>().unwrap()));
   /* -------------------------------------------------------------------------
-    *      [PLANET]
-    * 
-    * -----------------------------------------------------------------------*/
+  *      [PLANET]
+  * 
+  * -----------------------------------------------------------------------*/
   let planet_conf = Ini::load_from_file(PLANET_PARAMETER_FILE_PATH)
     .expect(&"! [ERROR] ! > planet.ini not found! <".to_string());
 
@@ -81,36 +81,41 @@ pub fn load_dke_core_parameters(dke: &mut DKE)
   let atmosphere_conf: Ini = Ini::load_from_file(ATMOSPHERE_PARAMETER_FILE_PATH)
     .expect(&"! [ERROR] ! > atmosphere.ini not found! <".to_string());
 
-  dke.get_mut_environment().get_mut_planet().set_enable_atmophere_modelling(&(atmosphere_conf
+  dke.get_mut_environment().get_mut_planet().get_mut_atmosphere().set_enable_atmophere_modelling(&(atmosphere_conf
       .section(Some("general")).unwrap()
       .get("flag_enable_atmosphere_modelling").unwrap())
       .parse::<bool>().unwrap() );
 
-  dke.get_mut_environment().get_mut_planet().set_radio_10_cm_flux(&(atmosphere_conf
+  dke.get_mut_environment().get_mut_planet().get_mut_atmosphere().set_radio_10_cm_flux(&(atmosphere_conf
       .section(Some("general")).unwrap()
       .get("radio_10_cm_flux").unwrap())
       .parse::<f64>().unwrap() );
 
-  dke.get_mut_environment().get_mut_planet().set_geomagnetic_ap_index(&(atmosphere_conf
+  dke.get_mut_environment().get_mut_planet().get_mut_atmosphere().set_geomagnetic_ap_index(&(atmosphere_conf
         .section(Some("general")).unwrap()
         .get("geomagnetic_ap_index").unwrap())
         .parse::<f64>().unwrap() );
-      
-   /* -------------------------------------------------------------------------
-    *      [SPACECRAFT]
-    * 
-    * -----------------------------------------------------------------------*/
-    let sim_conf: Ini = Ini::load_from_file(SIM_PARAMETER_FILE_PATH)
-    .expect(&"! [ERROR] ! > sim.ini not found! <".to_string());
 
-    dke.get_mut_environment().get_mut_spacecraft().set_sc_aero_eff_area_mm(&(sim_conf
-      .section(Some("start_state")).unwrap()
-      .get("sc_eff_aero_area_mm").unwrap())
-      .parse::<f64>().unwrap() );
+  /*
+   * @brief: After all parameters have been loaded -> initialize planet and sub-structs
+   * 
+   */
+  dke.get_mut_environment().get_mut_planet().init();
+  /* -------------------------------------------------------------------------
+  *      [SPACECRAFT]
+  * 
+  * -----------------------------------------------------------------------*/
+  let sim_conf: Ini = Ini::load_from_file(SIM_PARAMETER_FILE_PATH)
+  .expect(&"! [ERROR] ! > sim.ini not found! <".to_string());
 
-    dke.get_mut_environment().get_mut_spacecraft().set_sc_mass_kg(&(sim_conf
-      .section(Some("start_state")).unwrap()
-      .get("sc_mass_start_kg").unwrap())
-      .parse::<f64>().unwrap() );
+  dke.get_mut_environment().get_mut_spacecraft().set_sc_aero_eff_area_mm(&(sim_conf
+    .section(Some("start_state")).unwrap()
+    .get("sc_eff_aero_area_mm").unwrap())
+    .parse::<f64>().unwrap() );
+
+  dke.get_mut_environment().get_mut_spacecraft().set_sc_mass_kg(&(sim_conf
+    .section(Some("start_state")).unwrap()
+    .get("sc_mass_start_kg").unwrap())
+    .parse::<f64>().unwrap() );
 
 }

@@ -308,7 +308,7 @@ impl State {
     /* Set difference as seconds since epoch */
     self.state_since_epoch_j2000_s = (date_time_utc.timestamp() 
                                       - UNIX_SECONDS_AT_J2000_EPOCH) as f64;
-    println!("Initialise J2000 time [s]: {:?}",  self.state_since_epoch_j2000_s)
+    println!("[x] Initialise J2000 time [s]: {:?}",  self.state_since_epoch_j2000_s)
   }
 }
 

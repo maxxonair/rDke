@@ -1,6 +1,11 @@
 
 
+use crate::environment::planet::atmosphere::*;
 
+/* constants */
+use crate::constants::atmosphere::*;
+
+use super::atmosphere;
 
 #[derive(Clone)]
 
@@ -14,10 +19,18 @@ pub struct Planet {
   semi_minor_axis_m: f64,
   gravitational_constant: f64,
   flattening_factor: f64,
+  /* 
+   * @description : Planet's rotational rate
+   * @unit        : rad/s
+   * 
+   * */
   omega_rads: f64,
-  radio_10_cm_flux: f64,
-  geomagnetic_ap_index: f64,
-  enable_atmosphere_modelling: bool
+  /* [Atmosphere struct] 
+   * @description : Data struct containing all atmosphere relevant parameters
+   * @unit        : N/A
+   * 
+   * */
+   atmosphere: Atmosphere
 }
 
 /*
@@ -33,9 +46,25 @@ impl Planet {
       gravitational_constant: 0.0,
       flattening_factor: 0.0,
       omega_rads: 0.0,
-      radio_10_cm_flux: 0.0,
-      geomagnetic_ap_index: 0.0,
-      enable_atmosphere_modelling: false
+      atmosphere: Atmosphere::new()
+    }
+  }
+
+  /* 
+   * @brief: Function to complete initializing the class after the struct has 
+   *         been created. This function usually contains file loaders.
+   */
+  pub fn init(&mut self) 
+  {
+    println!("[x] Initialize planet");
+    /* Only initialize atmosphere if it is enabled */
+    if *self.get_atmosphere().is_atmoshpere_modelled() == true
+    {
+      self.get_mut_atmosphere().init();
+    }
+    else
+    {
+      println!("Atmosphere model disabled -> Skip initializing");
     }
   }
 }
@@ -50,9 +79,6 @@ impl Planet {
   pub fn set_gravitational_constant(&mut self, val_in: &f64) {self.gravitational_constant = *val_in;}
   pub fn set_flattening_factor(&mut self, val_in: &f64) {self.flattening_factor = *val_in;}
   pub fn set_omega(&mut self, val_in: &f64) {self.omega_rads = *val_in;}
-  pub fn set_radio_10_cm_flux(&mut self, val_in: &f64) {self.radio_10_cm_flux = *val_in;}
-  pub fn set_geomagnetic_ap_index(&mut self, val_in: &f64) {self.geomagnetic_ap_index = *val_in;}
-  pub fn set_enable_atmophere_modelling(&mut self, val_in: &bool) {self.enable_atmosphere_modelling = *val_in}
 }
 /*
  * ----------------------------------------------------------------------
@@ -66,8 +92,7 @@ impl Planet {
   pub fn get_gravitational_constant(&self) -> &f64 {&self.gravitational_constant}
   pub fn get_flattening_factor(&self) -> &f64 {&self.flattening_factor}
   pub fn get_omega(&self) -> &f64 {&self.omega_rads}
-  pub fn get_radio_10_cm_flux(&self) -> &f64 {&self.radio_10_cm_flux}
-  pub fn get_geomagnetic_ap_index(&self) -> &f64 {&self.geomagnetic_ap_index}
 
-  pub fn is_atmoshpere_modelled(&self) -> &bool {&self.enable_atmosphere_modelling}
+  pub fn get_atmosphere(&self) -> &Atmosphere {&self.atmosphere}
+  pub fn get_mut_atmosphere(&mut self) -> &mut Atmosphere {&mut self.atmosphere}
 }

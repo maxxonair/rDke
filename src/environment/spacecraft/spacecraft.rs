@@ -45,17 +45,6 @@ pub struct Spacecraft {
   aero_force_pci_n_y: f64,
   aero_force_pci_n_z: f64,
  /*
-  * @brief: Atmospheric density at the position of the spacecraft.
-  *
-  * Note: This will be maintained here rather than on the planet/environment
-  *       side for know, because the density value is closely tied to the 
-  *       spacecrafts current position.
-  * 
-  * @unit: kg/mmm
-  * @frame: N/A
-  */
-  atmos_density_kgmmm: f64,
- /*
   * @brief: Total mass of the spacecraft.
   * 
   * @unit: kg
@@ -97,7 +86,6 @@ impl Spacecraft {
       aero_force_pci_n_x: 0.0,
       aero_force_pci_n_y: 0.0,
       aero_force_pci_n_z: 0.0,
-      atmos_density_kgmmm: 0.0,
       sc_mass_kg: 0.0,
       sc_altitude_m: 0.0,
       sc_aero_eff_area_mm: 0.0
@@ -120,7 +108,6 @@ impl Spacecraft {
   pub fn set_aero_force_pci_n_x(&mut self, val_in: &f64) {self.aero_force_pci_n_x = *val_in;}
   pub fn set_aero_force_pci_n_y(&mut self, val_in: &f64) {self.aero_force_pci_n_y = *val_in;}
   pub fn set_aero_force_pci_n_z(&mut self, val_in: &f64) {self.aero_force_pci_n_z = *val_in;}
-  pub fn set_atmos_density_kgmmm(&mut self, val_in: &f64) {self.atmos_density_kgmmm = *val_in;}
   pub fn set_sc_mass_kg(&mut self, val_in: &f64) {self.sc_mass_kg = *val_in;}
   pub fn set_sc_altitude_m(&mut self, val_in: &f64) {self.sc_altitude_m = *val_in;}
   pub fn set_sc_aero_eff_area_mm(&mut self, val_in: &f64) {self.sc_aero_eff_area_mm = *val_in;}
@@ -141,7 +128,6 @@ impl Spacecraft {
   pub fn get_aero_force_pci_n_x(&self) -> &f64 {&self.aero_force_pci_n_x}
   pub fn get_aero_force_pci_n_y(&self) -> &f64 {&self.aero_force_pci_n_y}
   pub fn get_aero_force_pci_n_z(&self) -> &f64 {&self.aero_force_pci_n_z}
-  pub fn get_atmos_density_kgmmm(&self) -> &f64 {&self.atmos_density_kgmmm}
   pub fn get_sc_mass_kg(&self) -> &f64 {&self.sc_mass_kg}
   pub fn get_sc_altitude_m(&self) -> &f64 {&self.sc_altitude_m}
   pub fn get_sc_aero_eff_area_mm(&self) -> &f64 {&self.sc_aero_eff_area_mm}

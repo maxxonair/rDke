@@ -71,7 +71,7 @@ pub fn get_sum_of_forces(x_n1: &Array1<f64>, environment: &mut Environment) -> A
   sum_of_forces_vec_pci_n += &gravity::get_force_vec_iframe(x_n1, environment);
   
   /* [AERODYNAMIC FORCES] */
-  if *environment.get_planet().is_atmoshpere_modelled() == true
+  if *environment.get_mut_planet().get_mut_atmosphere().is_atmoshpere_modelled() == true
   {
     sum_of_forces_vec_pci_n += &aerodynamic::get_force_vec_iframe(x_n1.view(), environment);
   }

@@ -10,3 +10,5 @@ pub mod filepaths;
 pub mod time; 
 
 pub mod general;
+
+pub mod atmosphere;

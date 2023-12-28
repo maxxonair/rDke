@@ -30,10 +30,7 @@ use crate::dke_core::state_augmentation::{augment_state_solve,
                                           augment_state_write};
 use crate::dke_core::dke_core_load_param::load_dke_core_parameters;
 use crate::util::rlog::RLog;
-use crate::util::plot::{plot_sc_groundtrack, 
-                        plot_sc_altitude_vs_longitude,
-                        plot_sc_altitude_vs_simtime,
-                        plot_sc_dragcoeff_vs_altitude};
+use crate::util::plot::*;
 
 /* Import constants */
 use crate::constants::state::*;
@@ -188,13 +185,13 @@ impl DKE {
     log.set_enable_debug_messages(&false);
     /* ---------------------------------------------------------------------- */
     /* Initialize state as vector */
-    let mut x_vec: Array1<f64> = self.state.get_vector();
+    let mut state_vec: Array1<f64> = self.state.get_vector();
     /* Make sure the state vectors time value matches the start time selected 
      * for this simulation. */
-    x_vec[STATE_VEC_INDX_SIM_TIME] = self.sim_start_time_s;
+    state_vec[STATE_VEC_INDX_SIM_TIME] = self.sim_start_time_s;
     /* Create a clone of the start state to keep track of the previous state
      * Note: This is used for post-solving state augmentation */
-    let mut x_vec_n0: Array1<f64> = x_vec.clone();
+    let mut state_vec_n0: Array1<f64> = state_vec.clone();
 
     /* Calculate total number of simulation steps */
     let num_steps: i64 = ((self.sim_end_time_s - self.sim_start_time_s) 
@@ -221,8 +218,8 @@ impl DKE {
     let mut write_flush_counter: f64 = 0.0;
 
     /* Write initial state to csv */
-    x_vec  = augment_state_write(&self.get_mut_environment(), &mut x_vec, &x_vec_n0 );
-    write_csv::append_to_csv(&mut results_writer, &x_vec).unwrap();
+    state_vec  = augment_state_write(&self.get_mut_environment(), &mut state_vec, &state_vec_n0 );
+    write_csv::append_to_csv(&mut results_writer, &state_vec).unwrap();
 
     /* ---------------------------------------------------------------------- */
     /* [!] -----> Simulation main loop                                        */
@@ -234,8 +231,8 @@ impl DKE {
         || sim_step == num_steps - 1
       {
         log.log_dbg(&format!("SimTime [s] {:.3?} ( {:.2?}  {:.2?}  {:.2?} ) ->> Altitude [m] {:.2?}", 
-        self.sim_current_time_s, x_vec[STATE_VEC_INDX_POS_X], x_vec[STATE_VEC_INDX_POS_Y], 
-        x_vec[STATE_VEC_INDX_POS_Z], self.state.get_altitude(&x_vec)));
+        self.sim_current_time_s, state_vec[STATE_VEC_INDX_POS_X], state_vec[STATE_VEC_INDX_POS_Y], 
+        state_vec[STATE_VEC_INDX_POS_Z], self.state.get_altitude(&state_vec)));
         print_out_counter = 0.0;
       }
       print_out_counter += self.dt_s;
@@ -243,7 +240,7 @@ impl DKE {
       /* -------------------------------------------------------------------- */
       /* !! ---> Perform integration step with step size dt_s <--- !!         */
       /* +_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_+_ */
-      x_vec = step( &x_vec, 
+      state_vec = step( &state_vec, 
                           &dxdt, 
                           self.dt_s, 
                           &mut self.environment);
@@ -261,7 +258,7 @@ impl DKE {
       /* Post-process elements that are not filled in by the solver at solving 
        * frequency
        * */
-      x_vec  = augment_state_solve(&self.get_mut_environment(),&mut x_vec, &x_vec_n0 );
+      state_vec  = augment_state_solve(&self.get_mut_environment(),&mut state_vec, &state_vec_n0 );
 
       /* Increment counter to trigger [write results to file] */
       write_out_counter += self.dt_s;
@@ -270,10 +267,10 @@ impl DKE {
         || sim_step == num_steps - 1 
       { 
         /* Augment state at writing frequency */
-        x_vec  = augment_state_write(&self.get_mut_environment(), &mut x_vec, &x_vec_n0 );
+        state_vec  = augment_state_write(&self.get_mut_environment(), &mut state_vec, &state_vec_n0 );
         /* Write state to csv */
         write_csv::append_to_csv(&mut results_writer, 
-                                 &x_vec).unwrap();
+                                 &state_vec).unwrap();
         write_out_counter = 0.0;
       }
 
@@ -286,10 +283,10 @@ impl DKE {
       write_flush_counter += self.dt_s;
 
       /* Update vector to keep last timesteps state */
-      x_vec_n0 = x_vec.clone();
+      state_vec_n0 = state_vec.clone();
 
       /* Check if early exit condition is met */
-      if self.is_exit_conditions(&x_vec) == true
+      if self.is_exit_conditions(&state_vec) == true
       {
         log.log_wrn("!! [ Exit Simulation ] !!");
         log.log_wrn("Early exit condition: [altitude below zero]");
@@ -308,7 +305,7 @@ impl DKE {
     log.log_msg("              [FINISHED]");
     log.log_msg("---------------------------------------------------------------");
     log.log_msg(&format!("Simulated time                      [s] : {:.1}", 
-      x_vec[STATE_VEC_INDX_SIM_TIME] ));
+      state_vec[STATE_VEC_INDX_SIM_TIME] ));
     log.log_msg(&format!("Runtime                             [s] : {:.3?}", 
     (simulation_timer.elapsed().as_millis() as f64) / 1000.0) );
     log.log_msg(&format!("Number of integration steps             : {:?}", 
@@ -337,10 +334,17 @@ impl DKE {
 
     log.log_msg("[Save Plot] -> S/C drag coefficient vs altitude");
     plot_sc_dragcoeff_vs_altitude(&"./data_out/out.csv".to_string()).unwrap();
+
+    log.log_msg("[Save Plot] -> S/C velocity vs altitude");
+    plot_sc_velocity_altitude(&"./data_out/out.csv".to_string()).unwrap();
+
+    log.log_msg("[Save Plot] -> Atmospheric density vs altitude");
+    plot_atmos_density_altitude(&"./data_out/out.csv".to_string()).unwrap();
+
     log.close();
   }
 
-  /*
+  /* 
    * @brief: Function to check if a or several conditions are met to exit the 
    *         simulation before t_end is reached.
    * 
