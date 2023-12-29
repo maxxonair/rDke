@@ -12,9 +12,9 @@ def plotAltitude():
   res = pd.read_csv("./data_out/out.csv")
   f, ax = plt.subplots(3, 1, sharex=False)
 
-  vel_magn_ms = np.sqrt(  np.multiply(res["vel_x_iframe"].to_numpy(),res["vel_x_iframe"].to_numpy())
-                           + np.multiply(res["vel_y_iframe"].to_numpy(), res["vel_y_iframe"].to_numpy()) 
-                           + np.multiply(res["vel_z_iframe"].to_numpy(), res["vel_z_iframe"].to_numpy()))
+  vel_magn_ms = np.sqrt(  np.multiply(res["vel_x_pci"].to_numpy(),res["vel_x_pci"].to_numpy())
+                           + np.multiply(res["vel_y_pci"].to_numpy(), res["vel_y_pci"].to_numpy()) 
+                           + np.multiply(res["vel_z_pci"].to_numpy(), res["vel_z_pci"].to_numpy()))
   #-------------
   ax[0].plot(res["sim_time_s"],res["altitude_pcpf_m"].to_numpy()/1000)
   

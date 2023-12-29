@@ -43,13 +43,19 @@ Generic coordinate frame conventions used here
 
 PCI - Planet Centered Inertial
 
+Example inertal reference system for Earth centered simulations -> Celestial Reference System (CRS)
+
+![Sideral Time](https://github.com/maxxonair/rDke/blob/development/assets/images/crs_frame.png?raw=true)
+
+Image from https://gssc.esa.int/navipedia/index.php/Conventional_Celestial_Reference_System
+
 ### :earth_africa: Central Body Fixed Frames :earth_africa:
 
 PCPF - Planet Centered Inertial
 
 ### :rocket: Body fixed Frames :rocket:
 
-B - (General) Body fixed frame
+SBF - Spacecraft Body Frame
 
 ## [Time]
 

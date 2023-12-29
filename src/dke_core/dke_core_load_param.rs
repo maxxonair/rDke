@@ -118,4 +118,9 @@ pub fn load_dke_core_parameters(dke: &mut DKE)
     .get("sc_mass_start_kg").unwrap())
     .parse::<f64>().unwrap() );
 
+  dke.get_mut_environment().get_mut_spacecraft().set_sc_charact_length_m(&(sim_conf
+      .section(Some("start_state")).unwrap()
+      .get("sc_charact_length_m").unwrap())
+      .parse::<f64>().unwrap() );
+
 }

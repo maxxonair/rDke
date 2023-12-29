@@ -12,9 +12,9 @@ def plotAltitude():
   res = pd.read_csv("./data_out/out.csv")
   f, ax = plt.subplots(1, 1, sharex=False)
 
-  # vel_magn_ms = np.sqrt(  np.multiply(res["vel_x_iframe"].to_numpy(),res["vel_x_iframe"].to_numpy())
-  #                          + np.multiply(res["vel_y_iframe"].to_numpy(), res["vel_y_iframe"].to_numpy()) 
-  #                          + np.multiply(res["vel_z_iframe"].to_numpy(), res["vel_z_iframe"].to_numpy()))
+  # vel_magn_ms = np.sqrt(  np.multiply(res["vel_x_pci"].to_numpy(),res["vel_x_pci"].to_numpy())
+  #                          + np.multiply(res["vel_y_pci"].to_numpy(), res["vel_y_pci"].to_numpy()) 
+  #                          + np.multiply(res["vel_z_pci"].to_numpy(), res["vel_z_pci"].to_numpy()))
   
   # Load background map from file 
   img = plt.imread("assets/images/earth_map.jpg")

@@ -3,8 +3,8 @@
 use libm::exp;
 
 /* Include local crates */
-use crate::environment::environment::Environment;
 use crate::io::read_csv::*;
+use crate::math::lin_math::*;
 
 /* constants */
 use crate::constants::atmosphere::*;
@@ -82,6 +82,7 @@ impl Atmosphere
   pub fn get_density_kgmmm(&self) -> &f64 {&self.density_kgmmm}
   pub fn get_radio_10_cm_flux(&self) -> &f64 {&self.radio_10_cm_flux}
   pub fn get_geomagnetic_ap_index(&self) -> &f64 {&self.geomagnetic_ap_index}
+  pub fn get_knudsen_number(&self) -> &f64 {&self.knudsen_number}
 
   pub fn is_atmoshpere_modelled(&self) -> &bool {&self.enable_atmosphere_modelling}
 }
@@ -125,12 +126,60 @@ impl Atmosphere {
   }
 
  /*
-  * @brief: Wrapper to update the atmospheric, molecular mean free path
+  * @brief: Function to update the atmospheric, molecular mean free path
+  *
+  * @description: The mean free path is interpolated from a lookup table
   * 
   */
   pub fn update_mean_free_path_and_kn(&mut self, altitude_m: f64, characteristic_length_m: f64)
   {
     // TODO implementation
+    let mut index: usize = 0;
+    let max_length: usize = self.mean_free_path_lut_vec.len()-1;
+    let altitude_km: f64 = altitude_m / 1000.0;
+
+    /*  (1) find lut index */
+    if self.mean_free_path_lut_vec[max_length].0 < altitude_km
+    {
+      index = max_length;
+    }
+    else 
+    {
+      for (i, x) in self.mean_free_path_lut_vec.iter().enumerate() 
+      {
+        if altitude_km < x.0 && i == 0
+        {
+          break;
+        }
+        else if altitude_km < x.0
+        {
+          index = i - 1;
+          break;
+        }
+      }   
+    }
+
+    /* (2) interpolate value */ 
+    if index == 0 
+    {
+      self.mean_free_path_m = self.mean_free_path_lut_vec[0].1;
+    }
+    else if index == max_length
+    {
+      self.mean_free_path_m = self.mean_free_path_lut_vec[max_length].1;
+    }
+    else 
+    {
+      self.mean_free_path_m = linear_interpolate(altitude_km, 
+                                                        self.mean_free_path_lut_vec[index].0, 
+                                                        self.mean_free_path_lut_vec[index+1].0, 
+                                                        self.mean_free_path_lut_vec[index].1, 
+                                                        self.mean_free_path_lut_vec[index+1].1)
+    }
+
+    /* (3) Compute Kn number */ 
+    self.knudsen_number = self.mean_free_path_m / characteristic_length_m;
+
   }
 }
 

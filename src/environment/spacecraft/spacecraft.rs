@@ -64,7 +64,17 @@ pub struct Spacecraft {
   * @unit: m * m 
   * @frame: N/A
   */
-  sc_aero_eff_area_mm: f64
+  sc_aero_eff_area_mm: f64,
+ /*
+  * @brief: Characteristic length of the spacecraft. 
+  *
+  * Note: This length parameter is used to compute a series of aerodynamic
+  *       number like Reynolds, Knudsen and others
+  * 
+  * @unit: m 
+  * @frame: N/A
+  */
+  sc_charact_length_m: f64
 }
 
 
@@ -88,7 +98,8 @@ impl Spacecraft {
       aero_force_pci_n_z: 0.0,
       sc_mass_kg: 0.0,
       sc_altitude_m: 0.0,
-      sc_aero_eff_area_mm: 0.0
+      sc_aero_eff_area_mm: 0.0,
+      sc_charact_length_m: 0.0
 
     }
   }
@@ -111,6 +122,7 @@ impl Spacecraft {
   pub fn set_sc_mass_kg(&mut self, val_in: &f64) {self.sc_mass_kg = *val_in;}
   pub fn set_sc_altitude_m(&mut self, val_in: &f64) {self.sc_altitude_m = *val_in;}
   pub fn set_sc_aero_eff_area_mm(&mut self, val_in: &f64) {self.sc_aero_eff_area_mm = *val_in;}
+  pub fn set_sc_charact_length_m(&mut self, val_in: &f64) {self.sc_charact_length_m = *val_in;}
 }
 /*
  * ----------------------------------------------------------------------
@@ -131,4 +143,5 @@ impl Spacecraft {
   pub fn get_sc_mass_kg(&self) -> &f64 {&self.sc_mass_kg}
   pub fn get_sc_altitude_m(&self) -> &f64 {&self.sc_altitude_m}
   pub fn get_sc_aero_eff_area_mm(&self) -> &f64 {&self.sc_aero_eff_area_mm}
+  pub fn get_sc_charact_length_m(&self) -> &f64 {&self.sc_charact_length_m}
 }

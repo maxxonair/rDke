@@ -13,3 +13,5 @@ pub mod frame_math;
 pub mod time_math;
 
 pub mod rotation_math;
+
+pub mod lin_math;

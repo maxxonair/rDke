@@ -19,11 +19,11 @@ pub fn dxdt(
                                                     ::<f64>
                                                     ::zeros(STATE_VEC_NUM_ELEMENTS);
   /* Get sum of all forces acting on the S/C */
-  let sum_of_forces_iframe: Array1<f64> = get_sum_of_forces(x_in, environment) ;
+  let sum_of_forces_pci: Array1<f64> = get_sum_of_forces(x_in, environment) ;
 
-  let fx: f64 = sum_of_forces_iframe[VEC_X];
-  let fy: f64 = sum_of_forces_iframe[VEC_Y];
-  let fz: f64 = sum_of_forces_iframe[VEC_Z];
+  let fx: f64 = sum_of_forces_pci[VEC_X];
+  let fy: f64 = sum_of_forces_pci[VEC_Y];
+  let fz: f64 = sum_of_forces_pci[VEC_Z];
 
   let mass_kg: f64 = x_in[STATE_VEC_INDX_MASS];
 
@@ -68,12 +68,12 @@ pub fn get_sum_of_forces(x_n1: &Array1<f64>, environment: &mut Environment) -> A
   let mut sum_of_forces_vec_pci_n: Array1<f64> = Array1::zeros(3);
 
   /* [GRAVITATIONAL FORCES] */
-  sum_of_forces_vec_pci_n += &gravity::get_force_vec_iframe(x_n1, environment);
+  sum_of_forces_vec_pci_n += &gravity::get_force_vec_pci(x_n1, environment);
   
   /* [AERODYNAMIC FORCES] */
   if *environment.get_mut_planet().get_mut_atmosphere().is_atmoshpere_modelled() == true
   {
-    sum_of_forces_vec_pci_n += &aerodynamic::get_force_vec_iframe(x_n1.view(), environment);
+    sum_of_forces_vec_pci_n += &aerodynamic::get_force_vec_pci(x_n1.view(), environment);
   }
 
   sum_of_forces_vec_pci_n

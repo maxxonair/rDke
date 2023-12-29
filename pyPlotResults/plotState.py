@@ -12,41 +12,41 @@ def plotPosVelAcc(res):
   """
   f, ax = plt.subplots(3, 3, sharex=True)
   ax[0, 0].plot(res["sim_time_s"],
-             res["pos_x_iframe"])
+             res["pos_x_pci"])
   ax[1, 0].plot(res["sim_time_s"],
-            res["pos_y_iframe"])
+            res["pos_y_pci"])
   ax[2, 0].plot(res["sim_time_s"],
-             res["pos_z_iframe"])
+             res["pos_z_pci"])
   
   ax[0, 1].plot(res["sim_time_s"],
-             res["vel_x_iframe"])
+             res["vel_x_pci"])
   ax[1, 1].plot(res["sim_time_s"],
-            res["vel_y_iframe"])
+            res["vel_y_pci"])
   ax[2, 1].plot(res["sim_time_s"],
-             res["vel_z_iframe"])
+             res["vel_z_pci"])
   
   ax[0, 2].plot(res["sim_time_s"],
-             res["acc_x_iframe"])
+             res["acc_x_pci"])
   ax[1, 2].plot(res["sim_time_s"],
-            res["acc_y_iframe"])
+            res["acc_y_pci"])
   ax[2, 2].plot(res["sim_time_s"],
-             res["acc_z_iframe"])
+             res["acc_z_pci"])
   
   ax[2, 0].set_xlabel("sim_time_s", fontsize=7)
   ax[2, 1].set_xlabel("sim_time_s", fontsize=7)
   ax[2, 2].set_xlabel("sim_time_s", fontsize=7)
 
-  ax[0, 0].set_ylabel("pos_x_iframe [m]", fontsize=7)
-  ax[1, 0].set_ylabel("pos_y_iframe [m]", fontsize=7)
-  ax[2, 0].set_ylabel("pos_z_iframe [m]", fontsize=7)
+  ax[0, 0].set_ylabel("pos_x_pci [m]", fontsize=7)
+  ax[1, 0].set_ylabel("pos_y_pci [m]", fontsize=7)
+  ax[2, 0].set_ylabel("pos_z_pci [m]", fontsize=7)
 
-  ax[0, 1].set_ylabel("vel_x_iframe [m/s]", fontsize=7)
-  ax[1, 1].set_ylabel("vel_y_iframe [m/s]", fontsize=7)
-  ax[2, 1].set_ylabel("vel_z_iframe [m/s]", fontsize=7)
+  ax[0, 1].set_ylabel("vel_x_pci [m/s]", fontsize=7)
+  ax[1, 1].set_ylabel("vel_y_pci [m/s]", fontsize=7)
+  ax[2, 1].set_ylabel("vel_z_pci [m/s]", fontsize=7)
 
-  ax[0, 2].set_ylabel("acc_x_iframe [m/ss]", fontsize=7)
-  ax[1, 2].set_ylabel("acc_y_iframe [m/ss]", fontsize=7)
-  ax[2, 2].set_ylabel("acc_z_iframe [m/ss]", fontsize=7)
+  ax[0, 2].set_ylabel("acc_x_pci [m/ss]", fontsize=7)
+  ax[1, 2].set_ylabel("acc_y_pci [m/ss]", fontsize=7)
+  ax[2, 2].set_ylabel("acc_z_pci [m/ss]", fontsize=7)
 
   ax[0, 0].grid()
   ax[0, 1].grid()
