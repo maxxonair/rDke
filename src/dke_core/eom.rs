@@ -19,7 +19,7 @@ pub fn dxdt(
                                                     ::<f64>
                                                     ::zeros(STATE_VEC_NUM_ELEMENTS);
   /* Get sum of all forces acting on the S/C */
-  let sum_of_forces_pci: Array1<f64> = get_sum_of_forces(x_in, environment) ;
+  let sum_of_forces_pci: Array1<f64> = get_sum_of_force_vecs_pci(x_in, environment) ;
 
   let fx: f64 = sum_of_forces_pci[VEC_X];
   let fy: f64 = sum_of_forces_pci[VEC_Y];
@@ -63,7 +63,7 @@ pub fn dxdt(
  * @unit: TODO
  * @frame: TODO
  */
-pub fn get_sum_of_forces(x_n1: &Array1<f64>, environment: &mut Environment) -> Array1<f64>
+pub fn get_sum_of_force_vecs_pci(x_n1: &Array1<f64>, environment: &mut Environment) -> Array1<f64>
 {
   let mut sum_of_forces_vec_pci_n: Array1<f64> = Array1::zeros(3);
 

@@ -13,6 +13,10 @@ The central body is generally referred to as planet and defined by the planet.in
 configuration file. However the central body might be as well set up to be a moon, 
 an asteroid or the sun. 
 
+Overview
+
+![Simulation framework overview](https://github.com/maxxonair/rDke/blob/development/assets/images/simulation_environment.png?raw=true)
+
 ## [Models]
 
 ### Overview - Environment models
@@ -45,7 +49,7 @@ PCI - Planet Centered Inertial
 
 Example inertal reference system for Earth centered simulations -> Celestial Reference System (CRS)
 
-![Sideral Time](https://github.com/maxxonair/rDke/blob/development/assets/images/crs_frame.png?raw=true)
+![Inertial reference system](https://github.com/maxxonair/rDke/blob/development/assets/images/crs_frame.png?raw=true)
 
 Image from https://gssc.esa.int/navipedia/index.php/Conventional_Celestial_Reference_System
 

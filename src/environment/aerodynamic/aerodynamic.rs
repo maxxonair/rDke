@@ -44,8 +44,12 @@ pub fn get_force_vec_pci(state_in: ArrayView1<f64>, environment: &mut Environmen
   /* Transitional flow */
   else if Kn < 10.0
   {
-    // Todo replace newtonian flow theory with an appropriate model for transitional flow conditions
-    sum_of_forces_vec_pci_n = get_newtonian_flow_force_vec(state_in, environment);
+    /* Bridge for transitional flow regime from planetary entry, descent and landing course */
+    let newt_flow_force_vec_n: Array1<f64> = get_newtonian_flow_force_vec(state_in, environment);
+    let cont_flow_force_vec_n: Array1<f64> = get_continous_flow_force_vec(state_in, environment);
+    let phi: f64 = std::f64::consts::PI * (3./8. + 1./8. * Kn.log10());
+    let pb: f64 = (phi.sin()).powf(2.);
+    sum_of_forces_vec_pci_n = pb * newt_flow_force_vec_n + (1. - pb) * cont_flow_force_vec_n;
   }
   /* Free molecular flow */
   else
