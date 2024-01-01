@@ -1,4 +1,6 @@
 
+use std::env;
+
 /* Include external crates */
 use ndarray::{Array1, ArrayView1, s};
 use chrono::*;
@@ -168,6 +170,9 @@ pub fn augment_state_write(environment: &Environment, x1_inout: &Array1<f64>, x0
 
   state_vec_out[STATE_VEC_INDX_BALLISTIC_COEFF] =  environment.get_spacecraft().get_sc_mass_kg() 
     / (state_vec_out[STATE_VEC_INDX_DRAG_COEFF] * environment.get_spacecraft().get_sc_aero_eff_area_mm())  ;
+
+  state_vec_out[STATE_VEC_INDX_MACH_NUMBER] = *environment.get_spacecraft().get_sc_mach_number();
+  state_vec_out[STATE_VEC_INDX_KNUDSEN_NUMBER] = *environment.get_planet().get_atmosphere().get_knudsen_number();
 
   state_vec_out
 }

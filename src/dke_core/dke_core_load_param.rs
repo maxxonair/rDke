@@ -123,4 +123,10 @@ pub fn load_dke_core_parameters(dke: &mut DKE)
       .get("sc_charact_length_m").unwrap())
       .parse::<f64>().unwrap() );
 
+  /*
+   * @brief: After all parameters have been loaded -> initialize spacecraft and sub-structs
+   * 
+   */
+  dke.get_mut_environment().get_mut_spacecraft().init();
+
 }

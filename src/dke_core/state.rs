@@ -100,7 +100,14 @@ pub struct State {
    * @unit        : kg / (m * m)
    * 
    * */
-   ballistic_coeff_kgmm: f64
+   ballistic_coeff_kgmm: f64,
+  /* [mach number] 
+   * @description : Mach number
+   * @unit        : -
+   * 
+   * */
+   mach_number: f64,
+   Knudsen_number: f64
 }
 
 
@@ -121,6 +128,8 @@ impl State {
       vel_magn_pci_ms: 0.0,
       aero_drag_coeff: 0.0,
       ballistic_coeff_kgmm: 0.0,
+      mach_number: 0.0,
+      Knudsen_number: 0.0
     }
   }
 }
@@ -245,6 +254,8 @@ impl State {
 
     vec_out[STATE_VEC_INDX_DRAG_COEFF] = self.aero_drag_coeff;
     vec_out[STATE_VEC_INDX_BALLISTIC_COEFF] = self.ballistic_coeff_kgmm;
+    vec_out[STATE_VEC_INDX_MACH_NUMBER] = self.mach_number;
+    vec_out[STATE_VEC_INDX_KNUDSEN_NUMBER] = self.Knudsen_number;
 
     vec_out
   }
@@ -362,6 +373,8 @@ impl State
 
     self.aero_drag_coeff = state_vec_in[STATE_VEC_INDX_DRAG_COEFF] ;
     self.ballistic_coeff_kgmm = state_vec_in[STATE_VEC_INDX_BALLISTIC_COEFF] ;
+    self.mach_number = state_vec_in[STATE_VEC_INDX_MACH_NUMBER];
+    self.Knudsen_number = state_vec_in[STATE_VEC_INDX_KNUDSEN_NUMBER];
 
   }
 }

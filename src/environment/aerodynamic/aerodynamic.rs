@@ -33,17 +33,34 @@ pub fn get_force_vec_pci(state_in: ArrayView1<f64>, environment: &mut Environmen
              .get_mut_atmosphere()
              .update_mean_free_path_and_kn(state_in[STATE_VEC_INDX_ALTITUDE_PCPF_M], 
                               charct_lenth_m );
+
+  /* Update Speed of sound */
+  environment.get_mut_planet()
+             .get_mut_atmosphere()
+             .update_speed_of_sound(state_in[STATE_VEC_INDX_ALTITUDE_PCPF_M]);
+
+  /* Update Mach number */
+  // TODO we need the velocity magnitude corrected wrt the atmsophere not purely in PCI 
+  let speed_of_sound_ms: f64 = *environment.get_planet().get_atmosphere().get_speed_of_sound_ms();
+  environment.get_mut_spacecraft()
+             .update_mach_number(state_in[STATE_VEC_INDX_VEL_MAGN_PCI_MS], 
+              speed_of_sound_ms);
+
   /* Get Knudsen number for current S/C position from atmosphere model */
   let Kn: f64 = *environment.get_planet().get_atmosphere().get_knudsen_number();
   
   /* Continuum flow */
   if Kn < 0.01
   {
+    /* Update Mach dependent drag coefficient */
+    environment.get_mut_spacecraft().update_drag_coeff();
     sum_of_forces_vec_pci_n = get_continous_flow_force_vec(state_in, environment);
   }
   /* Transitional flow */
   else if Kn < 10.0
   {
+    /* Update Mach dependent drag coefficient */
+    environment.get_mut_spacecraft().update_drag_coeff();
     /* Bridge for transitional flow regime from planetary entry, descent and landing course */
     let newt_flow_force_vec_n: Array1<f64> = get_newtonian_flow_force_vec(state_in, environment);
     let cont_flow_force_vec_n: Array1<f64> = get_continous_flow_force_vec(state_in, environment);
@@ -103,7 +120,9 @@ fn get_continous_flow_force_vec(state_in: ArrayView1<f64>, environment: &mut Env
    * velocity vector */
   let drag_direction_vec: Array1<f64> = -1.0 * normalize_array1(velocity_vec);
 
-  let sum_of_forces_vec_pci_n: Array1<f64> = environment.get_planet().get_atmosphere().get_density_kgmmm() * environment.get_spacecraft().get_sc_aero_eff_area_mm()
+  let sum_of_forces_vec_pci_n: Array1<f64> = 0.5 * environment.get_planet().get_atmosphere().get_density_kgmmm() 
+                                            * environment.get_spacecraft().get_sc_drag_contin_coefficient()
+                                            * environment.get_spacecraft().get_sc_aero_eff_area_mm()
                                             * v_squared * drag_direction_vec;
 
   sum_of_forces_vec_pci_n

@@ -22,10 +22,12 @@ pub struct Atmosphere {
   temperature_k: f64,
   mean_free_path_m: f64,
   knudsen_number: f64,
+  speed_of_sound_ms: f64,
   radio_10_cm_flux: f64,
   geomagnetic_ap_index: f64,
   enable_atmosphere_modelling: bool,
-  mean_free_path_lut_vec: Vec<(f64, f64)>
+  mean_free_path_lut_vec: Vec<(f64, f64)>,
+  speed_of_sound_lut_vec: Vec<(f64, f64)>
 }
 
 /*
@@ -43,10 +45,12 @@ impl Atmosphere {
       temperature_k: 0.0,
       mean_free_path_m: 0.0,
       knudsen_number: 0.0,
+      speed_of_sound_ms: 0.0,
       radio_10_cm_flux: 0.0,
       geomagnetic_ap_index: 0.0,
       enable_atmosphere_modelling: false,
-      mean_free_path_lut_vec: Vec::new()
+      mean_free_path_lut_vec: Vec::new(),
+      speed_of_sound_lut_vec: Vec::new()
     }
   }
 
@@ -57,6 +61,7 @@ impl Atmosphere {
   pub fn init(&mut self) 
   {
     self.load_mean_free_path_lut();
+    self.load_speed_of_sound_lut();
   }
 }
 
@@ -83,6 +88,10 @@ impl Atmosphere
   pub fn get_radio_10_cm_flux(&self) -> &f64 {&self.radio_10_cm_flux}
   pub fn get_geomagnetic_ap_index(&self) -> &f64 {&self.geomagnetic_ap_index}
   pub fn get_knudsen_number(&self) -> &f64 {&self.knudsen_number}
+  pub fn get_speed_of_sound_ms(&self) -> &f64 {&self.speed_of_sound_ms}
+
+  pub fn get_mean_free_path_lut_vec(&self) -> &Vec<(f64, f64)> {&self.mean_free_path_lut_vec}
+  pub fn get_speed_of_sound_lut_vec(&self) -> &Vec<(f64, f64)> {&self.speed_of_sound_lut_vec}
 
   pub fn is_atmoshpere_modelled(&self) -> &bool {&self.enable_atmosphere_modelling}
 }
@@ -112,7 +121,25 @@ impl Atmosphere {
 
     for (i, x) in vec_mean_free_path_m.iter().enumerate() 
     {
-      self.mean_free_path_lut_vec.push((vec_altitude_km[i], vec_mean_free_path_m[1]));
+      self.mean_free_path_lut_vec.push((vec_altitude_km[i], vec_mean_free_path_m[i]));
+    }
+  }
+
+ /*
+  * @brief: Read speed of sound data from file. This function shall be called before 
+  *         running the simulation!
+  * 
+  *
+  * @returns: 
+  */
+  pub fn load_speed_of_sound_lut(&mut self) 
+  {
+    let vec_altitude_km: Vec<f64> = read_csv_column_f64(&ATMOS_SPEED_OF_SOUND_TABLE_PATH, true, ATMOS_SPEED_OF_SOUND_INDX_ALTITUDE);
+    let vec_speed_of_sound_ms: Vec<f64> = read_csv_column_f64(&ATMOS_SPEED_OF_SOUND_TABLE_PATH, true, ATMOS_SPEED_OF_SOUND_TABLE_INDX_SPEED_OF_SOUND);
+
+    for (i, x) in vec_speed_of_sound_ms.iter().enumerate() 
+    {
+      self.speed_of_sound_lut_vec.push((vec_altitude_km[i], vec_speed_of_sound_ms[i]));
     }
   }
 
@@ -133,56 +160,28 @@ impl Atmosphere {
   */
   pub fn update_mean_free_path_and_kn(&mut self, altitude_m: f64, characteristic_length_m: f64)
   {
-    // TODO implementation
-    let mut index: usize = 0;
-    let max_length: usize = self.mean_free_path_lut_vec.len()-1;
-    let altitude_km: f64 = altitude_m / 1000.0;
+    self.mean_free_path_m = find_value_from_lut(&self.mean_free_path_lut_vec, altitude_m / 1000.0);
 
-    /*  (1) find lut index */
-    if self.mean_free_path_lut_vec[max_length].0 < altitude_km
-    {
-      index = max_length;
-    }
-    else 
-    {
-      for (i, x) in self.mean_free_path_lut_vec.iter().enumerate() 
-      {
-        if altitude_km < x.0 && i == 0
-        {
-          break;
-        }
-        else if altitude_km < x.0
-        {
-          index = i - 1;
-          break;
-        }
-      }   
-    }
-
-    /* (2) interpolate value */ 
-    if index == 0 
-    {
-      self.mean_free_path_m = self.mean_free_path_lut_vec[0].1;
-    }
-    else if index == max_length
-    {
-      self.mean_free_path_m = self.mean_free_path_lut_vec[max_length].1;
-    }
-    else 
-    {
-      self.mean_free_path_m = linear_interpolate(altitude_km, 
-                                                        self.mean_free_path_lut_vec[index].0, 
-                                                        self.mean_free_path_lut_vec[index+1].0, 
-                                                        self.mean_free_path_lut_vec[index].1, 
-                                                        self.mean_free_path_lut_vec[index+1].1)
-    }
 
     /* (3) Compute Kn number */ 
     self.knudsen_number = self.mean_free_path_m / characteristic_length_m;
 
   }
-}
 
+ /*
+  * @brief: Function to update the atmospheric speed of sound for a given geometric 
+  *         altitude
+  *
+  * @description: Speed of sound value is interpolated from a lookup table
+  * 
+  */
+  pub fn update_speed_of_sound(&mut self, altitude_m: f64)
+  {
+    /* Update speed of sound value for given altitude */
+    self.speed_of_sound_ms = find_value_from_lut(&self.speed_of_sound_lut_vec, altitude_m / 1000.0);
+
+  }
+}
 
 /*
  * ----------------------------------------------------------------------
@@ -351,4 +350,5 @@ impl Atmosphere
     }
     (valid, density)
   }
+
 }

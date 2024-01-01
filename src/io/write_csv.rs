@@ -102,7 +102,9 @@ pub fn write_header_to_csv(writer_in: &mut csv::Writer<File>)
                             "aero_force_pci_n_y",
                             "aero_force_pci_n_z",
                             "aero_drag_coeff",
-                            "ballistic_coeff_kgmm"
+                            "ballistic_coeff_kgmm",
+                            "mach_number",
+                            "knudsen_number"
                             ])?;
 
  Ok(())

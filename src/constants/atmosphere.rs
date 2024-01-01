@@ -41,3 +41,25 @@ pub const ATMOS_MEAN_FREE_PATH_TABLE_INDX_MEAN_FREE_PATH: usize = 0;
   *  
   */
   pub const ATMOS_MEAN_FREE_PATH_TABLE_PATH: &str = "assets/atmosphere/earth/mean_free_path.csv";
+
+ /*
+  * @brief: Reference table column index for the mean free path data table.
+  *         This constant determines the column index at which the geometric altitude 
+  *         reference is saved.
+  *  
+  */
+pub const ATMOS_SPEED_OF_SOUND_INDX_ALTITUDE: usize = 1;
+
+/*
+ * @brief: Reference table column index for the mean free path data table.
+ *         This constant determines the column index at which the mean free path value
+ *         is saved.
+ *  
+ */
+pub const ATMOS_SPEED_OF_SOUND_TABLE_INDX_SPEED_OF_SOUND: usize = 0;
+   
+ /*
+  * @brief: Path at which the mean free path table data can be loaded
+  *  
+  */
+  pub const ATMOS_SPEED_OF_SOUND_TABLE_PATH: &str = "assets/atmosphere/earth/speed_of_sound.csv";

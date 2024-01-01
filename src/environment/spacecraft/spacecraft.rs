@@ -6,10 +6,11 @@
 /* None */
 
 /* Include local crates */
-/* None */
+use crate::io::read_csv::*;
+use crate::math::lin_math::*;
 
 /* Import constants */
-/* None */
+use crate::constants::spacecraft::*;
 
 
 #[derive(Clone)]
@@ -74,7 +75,28 @@ pub struct Spacecraft {
   * @unit: m 
   * @frame: N/A
   */
-  sc_charact_length_m: f64
+  sc_charact_length_m: f64,
+ /*
+  * @brief: Drag coefficient of the spacecraft.
+  * 
+  * Note: While in continuous flow this value will be computed from a Mach number
+  *       dependent LUT. 
+  * 
+  * @unit: N/A
+  * @frame: N/A
+  */
+  sc_drag_contin_coefficient: f64,
+ /*
+  * @brief: Mach number of the spacecraft.
+  * 
+  * @unit: N/A
+  * @frame: N/A
+  */
+  sc_mach_number: f64,
+  /*
+   * @brief: Tuple vector to store LUT for Mach - Cd 
+   */
+  drag_coeff_lut_vec: Vec<(f64, f64)>
 }
 
 
@@ -99,9 +121,21 @@ impl Spacecraft {
       sc_mass_kg: 0.0,
       sc_altitude_m: 0.0,
       sc_aero_eff_area_mm: 0.0,
-      sc_charact_length_m: 0.0
+      sc_charact_length_m: 0.0,
+      sc_drag_contin_coefficient: 0.0,
+      sc_mach_number: 0.0,
+      drag_coeff_lut_vec: Vec::new()
 
     }
+  }
+
+  /* 
+   * @brief: Function to complete initializing the class after the struct has 
+   *         been created. This function usually contains file loaders.
+   */
+  pub fn init(&mut self) 
+  {
+    self.load_drag_coeff_lut();
   }
 }
 /*
@@ -123,6 +157,8 @@ impl Spacecraft {
   pub fn set_sc_altitude_m(&mut self, val_in: &f64) {self.sc_altitude_m = *val_in;}
   pub fn set_sc_aero_eff_area_mm(&mut self, val_in: &f64) {self.sc_aero_eff_area_mm = *val_in;}
   pub fn set_sc_charact_length_m(&mut self, val_in: &f64) {self.sc_charact_length_m = *val_in;}
+  pub fn set_sc_drag_contin_coefficient(&mut self, val_in: &f64) {self.sc_drag_contin_coefficient = *val_in;}
+  pub fn set_sc_mach_number(&mut self, val_in: &f64) {self.sc_mach_number = *val_in;}
 }
 /*
  * ----------------------------------------------------------------------
@@ -144,4 +180,64 @@ impl Spacecraft {
   pub fn get_sc_altitude_m(&self) -> &f64 {&self.sc_altitude_m}
   pub fn get_sc_aero_eff_area_mm(&self) -> &f64 {&self.sc_aero_eff_area_mm}
   pub fn get_sc_charact_length_m(&self) -> &f64 {&self.sc_charact_length_m}
+  pub fn get_sc_drag_contin_coefficient(&self) -> &f64 {&self.sc_drag_contin_coefficient}
+  pub fn get_sc_mach_number(&self) -> &f64 {&self.sc_mach_number}
+}
+
+/*
+ * ----------------------------------------------------------------------
+ *                    [public functions]
+ * ----------------------------------------------------------------------
+ * */
+impl Spacecraft {
+  /*
+  * @brief: Read Mach dependent drag coefficient data (for continous flow) from file. 
+  *         This function shall be called before running the simulation!
+  * 
+  *
+  * @returns: 
+  */
+  pub fn load_drag_coeff_lut(&mut self) 
+  {
+    let vec_altitude_km: Vec<f64> = read_csv_column_f64(&SC_DRAG_COEFF_TABLE_PATH, true, SC_DRAG_COEFF_INDX_ALTITUDE);
+    let vec_drag_coeff: Vec<f64> = read_csv_column_f64(&SC_DRAG_COEFF_TABLE_PATH, true, SC_DRAG_COEFF_INDX_DRAG_COEFF);
+
+    for (i, x) in vec_drag_coeff.iter().enumerate() 
+    {
+      self.drag_coeff_lut_vec.push((vec_altitude_km[i], vec_drag_coeff[i]));
+    }
+  }
+
+ /*
+  * @brief: Function to update the atmospheric speed of sound for a given geometric 
+  *         altitude
+  *
+  * @description: Speed of sound value is interpolated from a lookup table
+  * 
+  */
+  pub fn update_mach_number(&mut self, sc_speed_pci_ms: f64, speed_of_sound_ms: f64)
+  {
+    if speed_of_sound_ms == 0.0
+    {
+      println!("[spacecraft.update_mach_number()] [WRN] Speed of sound is found to be zero. Set Mach = 0");
+      self.sc_mach_number = 0.0;
+    }
+    /* Update speed of sound value for given altitude */
+    self.sc_mach_number = sc_speed_pci_ms / speed_of_sound_ms;
+
+  }
+
+ /*
+  * @brief: Function to update the drag coefficient for a given Mach number 
+  *         
+  * Note: This assumes that the Mach number has been updated in a previous step!
+  * 
+  */
+  pub fn update_drag_coeff(&mut self)
+  {
+    /* Update drag coefficient for a given Mach number */
+    self.sc_drag_contin_coefficient = find_value_from_lut(&self.drag_coeff_lut_vec, self.sc_mach_number);
+
+  }
+
 }
