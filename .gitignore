@@ -2,7 +2,9 @@
 
 Cargo.lock
 
-**/*.csv
+data_out/*.csv
 
 **/__pycache__
 **/*.pyc
+
+.VSCodeCounter
