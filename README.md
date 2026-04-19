@@ -17,6 +17,16 @@ Overview
 
 ![Simulation framework overview](https://github.com/maxxonair/rDke/blob/development/assets/images/simulation_environment.png?raw=true)
 
+## How-To run the model
+
+To run the default thest case start the simulation with:
+
+```cargo run```
+
+Plot the results with
+
+```uv run plot_results```
+
 ## [Models]
 
 ### Overview - Environment models
