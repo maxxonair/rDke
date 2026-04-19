@@ -8,11 +8,10 @@ from pathlib import Path
 from util import read_results
 
 
-def plot_long_lat():
+def plot_long_lat(res: pd.DataFrame):
     """
     Plot longitude vs latitude over a background map using Plotly (dark theme)
     """
-    res = pd.read_csv("./data_out/out.csv")
 
     # Convert image to base64 so Plotly can display it
     with open("assets/images/earth_map.jpg", "rb") as f:
@@ -42,7 +41,10 @@ def plot_long_lat():
             x=res["longitude_pcpf_deg"],
             y=res["latitude_pcpf_deg"],
             mode="markers",
-            marker=dict(size=3),
+            marker=dict(
+                size=6,
+                color="red",
+            ),
             name="Trajectory",
         )
     )
