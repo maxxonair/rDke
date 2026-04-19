@@ -15,10 +15,12 @@
 
 /* Include external crates */
 use std::time::Instant;
+use std::env;
 use ndarray::Array1;
 use tqdm::tqdm;
 use chrono::Utc;
 use serde::Serialize;
+use std::sync::{ Arc, Mutex, atomic::{ AtomicBool, Ordering } };
 
 /* Import (local) structs */
 use crate::dke_core::state::State;
@@ -194,7 +196,7 @@ impl DKE {
  *
  */
 impl DKE {
-  pub fn run_simulation(&mut self, verbose: bool) -> SimulationSummary {
+  pub fn run_simulation(&mut self, verbose: bool, stop_flag: Arc<AtomicBool>) -> SimulationSummary {
     /* ---------------------------------------------------------------------- */
     /*                 [Load DKE core parameters]                             */
     /* ---------------------------------------------------------------------- */
@@ -220,11 +222,14 @@ impl DKE {
     self.sim_current_time_s = self.sim_start_time_s;
 
     /* Create file writer */
+    // Create abosolute path to the output file
+    let base = env::current_dir().unwrap();
     let timestamp = Utc::now().format("%Y_%m_%d__%H_%M_%S");
-    let filename = format!("{}_.csv", timestamp);
-    let fullpath = format!("./data_out/{}_.csv", filename);
-    let api_output_path = format!("./data_out/{}", filename);
-    let mut results_writer = write_csv::create_csv(fullpath);
+    let filename = format!("{}_sim_res.csv", timestamp);
+
+    let abs_path = base.join("data_out").join(format!("{}", filename));
+    let api_output_path = abs_path.to_string_lossy().to_string();
+    let mut results_writer = write_csv::create_csv(api_output_path.clone());
 
     if verbose == true {
       log.log_msg("---------------------------------------------------------------");
@@ -248,6 +253,10 @@ impl DKE {
     /* ---------------------------------------------------------------------- */
     /* [!] -----> Simulation main loop                                        */
     for sim_step in tqdm(0..num_steps).style(tqdm::Style::Block) {
+      if stop_flag.load(Ordering::Relaxed) {
+        println!("Simulation stopped early by API call.");
+        break;
+      }
       /* Write Simulation status to console  */
       if
         print_out_counter >= self.param_sim_print_interval_s ||

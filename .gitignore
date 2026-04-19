@@ -1,5 +1,9 @@
 /target
 
+# Ignore API downloaded files
+download
+status
+
 Cargo.lock
 
 data_out/*.csv
