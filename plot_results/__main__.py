@@ -11,7 +11,6 @@ console = Console()
 
 
 def main():
-    # Load data once (pass to functions that need it)
     try:
         res = pd.read_csv("./data_out/out.csv")
     except Exception as e:
