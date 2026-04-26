@@ -12,3 +12,5 @@ data_out/*.csv
 **/*.pyc
 
 .VSCodeCounter
+
+param_database/dolt-data

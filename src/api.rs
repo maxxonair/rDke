@@ -11,16 +11,16 @@ const SERVER_PORT: u16 = 8000;
 
 pub fn start_server() {
   println!("-----------------------------------------------------------------");
-  println!("                Starting DKE API server...                       ");
+  println!("                Starting DKE API server ...                      ");
   println!("-----------------------------------------------------------------");
   println!("   ");
   println!("Endpoints:");
   println!("POST /run      - Start a new simulation");
-  println!("POST /stop     - Stop the currently running simulation");
+  println!("POST /stop     - Stop a running simulation");
   println!("GET  /status   - Check if a simulation is running and get last result");
-  println!("GET  /download - Download the last simulation results as CSV");
+  println!("GET  /download - Download the latest simulation results as CSV");
   println!("   ");
-  println!("Starting server on http://{}:{}", SERVER_IP, SERVER_PORT);
+  println!("Starting server at http://{}:{}", SERVER_IP, SERVER_PORT);
   println!("   ");
   println!("   ");
   println!("   ");

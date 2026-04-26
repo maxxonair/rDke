@@ -1,0 +1,15 @@
+services:
+  rdke-param-server:
+    image: dolthub/dolt-sql-server:latest
+    container_name: rdke-param-server
+    restart: always
+    ports:
+      - "9999:3306"
+    volumes:
+      - ./dolt-data:/var/lib/dolt
+    environment:
+      MYSQL_USER: rdke_user
+      MYSQL_PASSWORD: rdke_password
+      MYSQL_DATABASE: rdke_parameters
+      MYSQL_USER_HOST: "%"
+      DOLT_ROOT_PASSWORD: root
